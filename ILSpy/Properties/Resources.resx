@@ -165,6 +165,9 @@ Are you sure you want to continue?</value>
   <data name="BaseTypes" xml:space="preserve">
     <value>Base Types</value>
   </data>
+  <data name="BonoboDumper" xml:space="preserve">
+    <value>BonoboDumper</value>
+  </data>
   <data name="C_lone" xml:space="preserve">
     <value>C_lone</value>
   </data>
@@ -1086,6 +1089,9 @@ Do you want to continue?</value>
   </data>
   <data name="_Assemblies" xml:space="preserve">
     <value>_Assemblies</value>
+  </data>
+  <data name="_BonoboDumper" xml:space="preserve">
+    <value>_BonoboDumper</value>
   </data>
   <data name="_CheckUpdates" xml:space="preserve">
     <value>_Check for Updates</value>

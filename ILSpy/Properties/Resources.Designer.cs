@@ -95,11 +95,20 @@ namespace ICSharpCode.ILSpy.Properties {
                 return ResourceManager.GetString("_Assemblies", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Check for Updates.
-        /// </summary>
-        public static string _CheckUpdates {
+
+		/// <summary>
+		///   Looks up a localized string similar to _BonoboDumper.
+		/// </summary>
+		public static string _BonoboDumper {
+			get {
+				return ResourceManager.GetString("_BonoboDumper", resourceCulture);
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized string similar to _Check for Updates.
+		/// </summary>
+		public static string _CheckUpdates {
             get {
                 return ResourceManager.GetString("_CheckUpdates", resourceCulture);
             }
@@ -438,6 +447,15 @@ namespace ICSharpCode.ILSpy.Properties {
         public static string BaseTypes {
             get {
                 return ResourceManager.GetString("BaseTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BonoboDumper.
+        /// </summary>
+        public static string BonoboDumper {
+            get {
+                return ResourceManager.GetString("BonoboDumper", resourceCulture);
             }
         }
         
