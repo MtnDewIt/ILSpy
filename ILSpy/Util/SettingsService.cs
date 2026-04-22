@@ -53,6 +53,8 @@ namespace ICSharpCode.ILSpy.Util
 
 		public MiscSettings MiscSettings => GetSettings<MiscSettings>();
 
+		public BonoboDumperSettings BonoboDumperSettings => GetSettings<BonoboDumperSettings>();
+
 		private AssemblyListManager? assemblyListManager;
 		public AssemblyListManager AssemblyListManager => assemblyListManager ??= new(SpySettings) {
 			ApplyWinRTProjections = DecompilerSettings.ApplyWindowsRuntimeProjections,

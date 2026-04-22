@@ -168,6 +168,9 @@ Are you sure you want to continue?</value>
   <data name="BonoboDumper" xml:space="preserve">
     <value>BonoboDumper</value>
   </data>
+  <data name="Bonobo_Dumper" xml:space="preserve">
+    <value>Bonobo Dumper</value>
+  </data>
   <data name="C_lone" xml:space="preserve">
     <value>C_lone</value>
   </data>

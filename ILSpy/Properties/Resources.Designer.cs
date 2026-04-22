@@ -458,11 +458,20 @@ namespace ICSharpCode.ILSpy.Properties {
                 return ResourceManager.GetString("BonoboDumper", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to C_lone.
-        /// </summary>
-        public static string C_lone {
+
+		/// <summary>
+		///   Looks up a localized string similar to Bonobo_Dumper.
+		/// </summary>
+		public static string Bonobo_Dumper {
+			get {
+				return ResourceManager.GetString("Bonobo_Dumper", resourceCulture);
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized string similar to C_lone.
+		/// </summary>
+		public static string C_lone {
             get {
                 return ResourceManager.GetString("C_lone", resourceCulture);
             }
