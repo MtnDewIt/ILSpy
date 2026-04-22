@@ -7,8 +7,8 @@ using ICSharpCode.ILSpy.Properties;
 
 namespace ICSharpCode.ILSpy.Commands.Bonobo
 {
-	[ExportToolbarCommand(ToolTip = nameof(Resources.BonoboDumper), ToolbarIcon = "Images/Open", ToolbarCategory = nameof(Resources.Open), ToolbarOrder = 0)]
-	[ExportMainMenuCommand(ParentMenuID = nameof(Resources._File), Header = nameof(Resources._BonoboDumper), MenuIcon = "Images/Open", MenuCategory = nameof(Resources.BonoboDumper), MenuOrder = 0)]
+	[ExportToolbarCommand(ToolTip = nameof(Resources.BonoboDumper), ToolbarIcon = "Images/Bonobo", ToolbarCategory = nameof(Resources.Open), ToolbarOrder = 0)]
+	[ExportMainMenuCommand(ParentMenuID = nameof(Resources._File), Header = nameof(Resources._BonoboDumper), MenuIcon = "Images/Bonobo", MenuCategory = nameof(Resources.BonoboDumper), MenuOrder = 0)]
 	[Shared]
 	sealed class BonoboDumperCommand : SimpleCommand
 	{
@@ -52,13 +52,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 				Dumper.GenerateProjectSolution(project);
 
+				AssemblyInfoGenerator.Init(project);
+				AssemblyInfoGenerator.GenerateAssemblyInfo(project);
+
 				// Filter XAML Files (They never get put in the right directory)
 
 				// Update Namespace Handling (It always dumps its above the class declaration, instead of wrapping around it)
-
-				// Generate Assembly Info For Each Project
-
-				// 
 			}
 
 			DumperContext.ValidateDependenciesPath();
