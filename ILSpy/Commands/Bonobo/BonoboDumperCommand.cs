@@ -51,6 +51,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				}
 
 				Dumper.GenerateProjectSolution(project);
+				Dumper.GenerateProjectFile(project);
 
 				AssemblyInfoGenerator.Init(project);
 				AssemblyInfoGenerator.GenerateAssemblyInfo(project);
@@ -58,6 +59,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				// Filter XAML Files (They never get put in the right directory)
 
 				// Update Namespace Handling (It always dumps its above the class declaration, instead of wrapping around it)
+
+				dumper.Clear();
 			}
 
 			DumperContext.ValidateDependenciesPath();

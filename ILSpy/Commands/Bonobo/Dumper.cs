@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.ILSpy.AssemblyTree;
 using ICSharpCode.ILSpy.Docking;
 using ICSharpCode.ILSpy.ViewModels;
@@ -13,6 +16,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		AssemblyTreeModel assemblyTreeModel;
 		LanguageService languageService;
 		DockWorkspace dockWorkspace;
+
+		static MetadataFile metadataFile;
 
 		static readonly int indentSize = 4;
 		static readonly string indent = new(' ', indentSize);
@@ -42,6 +47,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			assemblyTreeModel.OpenFiles([projectPath]);
 
 			var loadedAssembly = assemblyTreeModel.AssemblyList.FindAssembly(projectPath);
+			metadataFile = loadedAssembly.GetMetadataFileOrNull();
+
 			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + languageService.Language.ProjectFileExtension);
 
 			var options = dockWorkspace.ActiveTabPage.CreateDecompilationOptions();
@@ -55,6 +62,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 
 			assemblyTreeModel.AssemblyList.Clear();
+		}
+
+		public void Clear() 
+		{
+			metadataFile = null;
 		}
 
 		public static void GenerateProjectSolution(string project) 
@@ -110,6 +122,126 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			sb.AppendLine($"</Project>");
 
 			File.WriteAllText($"{DumperContext.ProjectOutputPath}\\Directory.Build.props", sb.ToString());
+		}
+
+		public static void GenerateProjectFile(string project) 
+		{
+			StringBuilder sb = new StringBuilder();
+
+			sb.AppendLine($"<Project Sdk=\"Microsoft.NET.Sdk\">");
+
+			sb.AppendLine($"{indent}<PropertyGroup>");
+			sb.AppendLine($"{indent}</PropertyGroup>");
+
+			sb.AppendLine($"{indent}<ItemGroup>");
+
+			List<string> dependencies = [];
+
+			foreach (var reference in metadataFile.AssemblyReferences)
+			{
+				if (DumperContext.Projects.Any(x => x.Contains(reference.Name)))
+				{
+					string relativePath = DumperContext.RelativePaths.Where(x => x.Contains(reference.Name)).FirstOrDefault();
+
+					if (!string.IsNullOrEmpty(relativePath) && !dependencies.Contains(relativePath))
+					{
+						dependencies.Add(relativePath);
+					}
+				}
+			}
+
+			dependencies = [.. dependencies.OrderBy(Path.GetFileNameWithoutExtension)];
+
+			foreach (var dependency in dependencies)
+			{
+				sb.AppendLine($"{indent}{indent}<!-- <Reference Include=\"..\\Dependencies\\{dependency}\" Private=\"false\" /> -->");
+			}
+
+			sb.AppendLine($"{indent}</ItemGroup>");
+
+			sb.AppendLine($"{indent}<!-- #TODO: Replace static dll references with project references -->");
+
+			sb.AppendLine($"{indent}<ItemGroup>");
+
+			List<string> references = [];
+
+			foreach (var reference in metadataFile.AssemblyReferences)
+			{
+				if (DumperContext.Projects.Any(x => x.Contains(reference.Name)))
+				{
+					string projectName = DumperContext.Projects.Where(x => x.StartsWith(reference.Name)).FirstOrDefault();
+
+					if (!string.IsNullOrEmpty(projectName) && !references.Contains(projectName))
+					{
+						references.Add(reference.Name);
+					}
+				}
+			}
+
+			references.Sort();
+
+			foreach (var reference in references)
+			{
+				sb.AppendLine($"{indent}{indent}<ProjectReference Include=\"..\\{reference}\\{reference}.csproj\" Private=\"false\" />");
+			}
+
+			sb.AppendLine($"{indent}</ItemGroup>");
+
+			sb.AppendLine($"{indent}<ItemGroup>");
+
+			//List<string> externalDependencies = [];
+			//
+			//foreach (var reference in metadataFile.AssemblyReferences)
+			//{
+			//	if (DumperContext.Projects.Any(x => !x.Contains(reference.Name)))
+			//	{
+			//		string projectName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
+			//
+			//		if (!string.IsNullOrEmpty(projectName) && !externalDependencies.Contains(projectName))
+			//		{
+			//			externalDependencies.Add(reference.Name);
+			//		}
+			//	}
+			//}
+			//
+			//externalDependencies.Sort();
+			//
+			//foreach (var externalDependency in externalDependencies)
+			//{
+			//	sb.AppendLine($"{indent}{indent}");
+			//}
+
+			sb.AppendLine($"{indent}</ItemGroup>");
+
+			sb.AppendLine($"{indent}<ItemGroup>");
+
+			//List<string> internalDependencies = [];
+			//
+			//foreach (var reference in metadataFile.AssemblyReferences)
+			//{
+			//	if (DumperContext.Projects.Any(x => !x.Contains(reference.Name)))
+			//	{
+			//		string projectName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
+			//
+			//		if (!string.IsNullOrEmpty(projectName) && !internalDependencies.Contains(projectName))
+			//		{
+			//			internalDependencies.Add(reference.Name);
+			//		}
+			//	}
+			//}
+			//
+			//internalDependencies.Sort();
+			//
+			//foreach (var internalDependency in internalDependencies)
+			//{
+			//	sb.AppendLine($"{indent}{indent}");
+			//}
+
+			sb.AppendLine($"{indent}</ItemGroup>");
+
+			sb.AppendLine($"</Project>");
+
+			File.WriteAllText($"{DumperContext.ProjectOutputPath}\\{project}\\{project}.csproj", sb.ToString());
 		}
 	}
 }
