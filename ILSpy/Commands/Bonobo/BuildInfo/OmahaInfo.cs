@@ -28,7 +28,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
             $"TAE.Shared.Tags",
             $"TAE.Shared.Tags.ManagedBlam",
             $"TAE.Shared.Tags.Service",
-            $"TAE.Shared.Tags.ServiceClien",
+            $"TAE.Shared.Tags.ServiceClient",
             $"TAE.Shared.Tags.ServiceHost",
             $"TagService",
             $"TagWatcher",

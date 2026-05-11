@@ -23,8 +23,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public static uint BuildVersion = 0;
 		public static uint PrivateVersion = 0;
 
-		public static void Init(string project) 
+		public static string ProjectName;
+
+		public static void Init(string project)
 		{
+			ProjectName = project;
+
 			int projectIndex = DumperContext.Projects.IndexOf(project);
 			string projectPath = $"{DumperContext.BonoboPath}\\{DumperContext.RelativePaths[projectIndex]}";
 
@@ -37,29 +41,29 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			string[] data = File.ReadAllLines($"{DumperContext.ProjectDumpPath}\\{project}\\Properties\\AssemblyInfo.cs");
 
-			UsingAttributes = [.. data.Where(x => 
+			UsingAttributes = [.. data.Where(x =>
 				x.StartsWith("using"))];
 
-			AssemblyAttributes = [.. data.Where(x => 
-				x.StartsWith("[assembly: Assembly") && 
+			AssemblyAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: Assembly") &&
 				!x.Contains("Version(") &&
 				!x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
 
-			ComAttributes = [.. data.Where(x => 
+			ComAttributes = [.. data.Where(x =>
 				x.StartsWith("[assembly: Com"))];
 
-			VersionAttributes = [.. data.Where(x => 
-				x.StartsWith("[assembly: Assembly") && 
+			VersionAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: Assembly") &&
 				x.Contains("Version("))];
 
-			ThemeAttributes = [.. data.Where(x => 
+			ThemeAttributes = [.. data.Where(x =>
 				x.StartsWith("[assembly: Theme"))];
 
-			ContentAttributes = [.. data.Where(x => 
+			ContentAttributes = [.. data.Where(x =>
 				x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
 		}
 
-		public static void GenerateAssemblyInfo(string project) 
+		public static void GenerateAssemblyInfo(string project)
 		{
 			string path = $"{DumperContext.ProjectOutputPath}\\{project}\\Properties\\AssemblyInfo.cs";
 			string directory = Path.GetDirectoryName(path);
@@ -71,31 +75,37 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				sb.AppendLine(attribute);
 			}
 
-			string title = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTitle")).FirstOrDefault();
-			string description = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyDescription")).FirstOrDefault();
-			string configuration = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyConfiguration")).FirstOrDefault();
-			string company = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCompany")).FirstOrDefault();
-			string product = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyProduct")).FirstOrDefault();
-			string copyright = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCopyright")).FirstOrDefault();
-			string trademark = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTrademark")).FirstOrDefault();
-			string culture = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCulture")).FirstOrDefault();
-
+			sb.AppendLine();
+			
 			string visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
-
-			string version = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyVersion")).FirstOrDefault();
-			string fileVersion = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyFileVersion")).FirstOrDefault();
-
 			string theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
 
-			if (ComAttributes.Count > 0)
-			{
-				foreach (string attribute in ContentAttributes)
-				{
-					sb.AppendLine(attribute);
-				}
+			ParseTitle(sb);
+			ParseDescription(sb);
+			ParseConfiguration(sb);
+			ParseCompany(sb);
+			ParseProduct(sb);
+			ParseCopyright(sb);
+			ParseTrademark(sb);
+			ParseCulture(sb);
+			
+			sb.AppendLine();
+			sb.AppendLine(visible);
+			sb.AppendLine();
 
-				sb.AppendLine();
+			ParseVersion(sb);
+			ParseFileVersion(sb);
+
+			sb.AppendLine();
+			sb.AppendLine(theme);
+			sb.AppendLine();
+
+			foreach (string attribute in ContentAttributes)
+			{
+				sb.AppendLine(attribute);
 			}
+
+			sb.AppendLine();
 
 			if (!Directory.Exists(directory))
 			{
@@ -103,6 +113,126 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 
 			File.WriteAllText(path, sb.ToString());
+		}
+
+		public static void ParseTitle(StringBuilder sb)
+		{
+			string title = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTitle")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(title))
+			{
+				title = $"[assembly: AssemblyTitle(\"{ProjectName}\")]";
+			}
+
+			sb.AppendLine(title);
+		}
+
+		public static void ParseDescription(StringBuilder sb)
+		{
+			string description = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyDescription")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(description))
+			{
+				description = $"[assembly: AssemblyDescription(\"\")]";
+			}
+
+			sb.AppendLine(description);
+		}
+
+		public static void ParseConfiguration(StringBuilder sb)
+		{
+			string configuration = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyConfiguration")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(configuration))
+			{
+				configuration = $"[assembly: AssemblyConfiguration(\"\")]";
+			}
+
+			sb.AppendLine(configuration);
+		}
+
+		public static void ParseCompany(StringBuilder sb)
+		{
+			string company = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCompany")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(company))
+			{
+				company = $"[assembly: AssemblyCompany(\"\")]";
+			}
+
+			sb.AppendLine(company);
+		}
+
+		public static void ParseProduct(StringBuilder sb)
+		{
+			string product = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyProduct")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(product))
+			{
+				product = $"[assembly: AssemblyProduct(\"{ProjectName}\")]";
+			}
+
+			sb.AppendLine(product);
+		}
+
+		public static void ParseCopyright(StringBuilder sb)
+		{
+			string copyright = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCopyright")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(copyright))
+			{
+				copyright = $"[assembly: AssemblyCopyright(\"Copyright © {DateTime.Now.Year}\")]";
+			}
+
+			sb.AppendLine(copyright);
+		}
+
+		public static void ParseTrademark(StringBuilder sb)
+		{
+			string trademark = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTrademark")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(trademark))
+			{
+				trademark = $"[assembly: AssemblyTrademark(\"HaloMods ™ {DateTime.Now.Year}\")]";
+			}
+
+			sb.AppendLine(trademark);
+		}
+
+		public static void ParseCulture(StringBuilder sb)
+		{
+			string culture = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCulture")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(culture))
+			{
+				culture = $"[assembly: AssemblyCulture(\"\")]";
+			}
+
+			sb.AppendLine(culture);
+		}
+
+		public static void ParseVersion(StringBuilder sb) 
+		{
+			string version = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyVersion")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(version))
+			{
+				version = $"[assembly: AssemblyVersion(\"{MajorVersion}.{MinorVersion}.{BuildVersion}.{PrivateVersion}\")]";
+			}
+
+			sb.AppendLine(version);
+		}
+
+		public static void ParseFileVersion(StringBuilder sb)
+		{
+			string fileVersion = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyFileVersion")).FirstOrDefault();
+
+			if (string.IsNullOrEmpty(fileVersion))
+			{
+				fileVersion = $"[assembly: AssemblyFileVersion(\"{MajorVersion}.{MinorVersion}.{BuildVersion}.{PrivateVersion}\")]";
+			}
+
+			sb.AppendLine(fileVersion);
 		}
 	}
 }
