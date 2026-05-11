@@ -27,6 +27,25 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		static readonly string platform = DumperContext.Platform.ToString();
 
+		static readonly string[] implicitReferences = new string[]
+		{
+			"mscorlib",
+			"netstandard",
+			"PresentationCore",
+			"PresentationFramework",
+			"System",
+			"System.Core",
+			"System.Diagnostics.Debug",
+			"System.Diagnostics.Tools",
+			"System.Drawing",
+			"System.Runtime",
+			"System.Runtime.Extensions",
+			"System.Windows.Forms",
+			"System.Xaml",
+			"System.Xml.Linq",
+			"WindowsBase"
+		};
+
 		public void Init(AssemblyTreeModel assemblyTreeModel, LanguageService languageService, DockWorkspace dockWorkspace) 
         {
 			this.assemblyTreeModel = assemblyTreeModel;
@@ -137,7 +156,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			List<string> dependencies = [];
 
-			foreach (var reference in metadataFile.AssemblyReferences)
+			foreach (var reference in metadataFile.AssemblyReferences.Where(r => !implicitReferences.Contains(r.Name)))
 			{
 				if (DumperContext.Projects.Any(x => x.Contains(reference.Name)))
 				{
@@ -165,7 +184,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			List<string> references = [];
 
-			foreach (var reference in metadataFile.AssemblyReferences)
+			foreach (var reference in metadataFile.AssemblyReferences.Where(r => !implicitReferences.Contains(r.Name)))
 			{
 				if (DumperContext.Projects.Any(x => x.Contains(reference.Name)))
 				{
@@ -189,27 +208,27 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine($"{indent}<ItemGroup>");
 
-			//List<string> externalDependencies = [];
-			//
-			//foreach (var reference in metadataFile.AssemblyReferences)
-			//{
-			//	if (DumperContext.Projects.Any(x => !x.Contains(reference.Name)))
-			//	{
-			//		string projectName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
-			//
-			//		if (!string.IsNullOrEmpty(projectName) && !externalDependencies.Contains(projectName))
-			//		{
-			//			externalDependencies.Add(reference.Name);
-			//		}
-			//	}
-			//}
-			//
-			//externalDependencies.Sort();
-			//
-			//foreach (var externalDependency in externalDependencies)
-			//{
-			//	sb.AppendLine($"{indent}{indent}");
-			//}
+			List<string> externalDependencies = [];
+			
+			foreach (var reference in metadataFile.AssemblyReferences.Where(r => !implicitReferences.Contains(r.Name)))
+			{
+				if (DumperContext.Projects.All(x => !x.Contains(reference.Name)))
+				{
+					string projectName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
+			
+					if (!string.IsNullOrEmpty(projectName) && !externalDependencies.Contains(projectName))
+					{
+						externalDependencies.Add(reference.Name);
+					}
+				}
+			}
+			
+			externalDependencies.Sort();
+			
+			foreach (var externalDependency in externalDependencies)
+			{
+				sb.AppendLine($"{indent}{indent}<Reference Include=\"{externalDependency}\" Private=\"false\" />");
+			}
 
 			sb.AppendLine($"{indent}</ItemGroup>");
 
@@ -217,9 +236,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			//List<string> internalDependencies = [];
 			//
-			//foreach (var reference in metadataFile.AssemblyReferences)
+			//foreach (var reference in metadataFile.AssemblyReferences.Where(r => !implicitReferences.Contains(r.Name)))
 			//{
-			//	if (DumperContext.Projects.Any(x => !x.Contains(reference.Name)))
+			//	if (DumperContext.Projects.All(x => !x.Contains(reference.Name)))
 			//	{
 			//		string projectName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
 			//
