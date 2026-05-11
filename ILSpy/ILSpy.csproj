@@ -56,6 +56,7 @@
     <EmbeddedResource Include="..\LICENSE">
       <Link>license.txt</Link>
     </EmbeddedResource>
+    <Resource Include="Images\Bonobo.png" />
     <Resource Include="Images\NuGet.png" />
     <Resource Include="Images\ILSpy.ico" />
     <EmbeddedResource Include="TextView\CSharp-Mode.xshd" />
