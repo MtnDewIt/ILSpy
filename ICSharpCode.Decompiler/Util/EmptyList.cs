@@ -20,6 +20,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ICSharpCode.Decompiler.Util
 {
@@ -99,6 +100,8 @@ namespace ICSharpCode.Decompiler.Util
 			get { throw new NotSupportedException(); }
 		}
 
+		[SuppressMessage("Usage", "CA1063:Implement IDisposable Correctly",
+			Justification = "Explicit IDisposable implementation for IEnumerator<T>; intentional no-op for the singleton.")]
 		void IDisposable.Dispose()
 		{
 		}

@@ -162,15 +162,18 @@ namespace ICSharpCode.ILSpy
 
 		static T FromString<T>(string s, T defaultValue)
 		{
-			if (s == null)
+			if (string.IsNullOrEmpty(s))
 				return defaultValue;
 			try
 			{
 				TypeConverter c = TypeDescriptor.GetConverter(typeof(T));
 				return (T)c.ConvertFromInvariantString(s);
 			}
-			catch (FormatException)
+			catch (Exception)
 			{
+				// TypeConverters for WPF types (e.g. Rect) throw InvalidOperationException, not
+				// FormatException, on malformed input. Treat any conversion failure as "use the
+				// default" so a single bad saved value can't crash startup.
 				return defaultValue;
 			}
 		}

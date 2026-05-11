@@ -28,9 +28,10 @@ using ICSharpCode.Decompiler.TypeSystem;
 
 namespace ICSharpCode.Decompiler
 {
-	public sealed class PlainTextOutput : ITextOutput
+	public sealed class PlainTextOutput : ITextOutput, IDisposable
 	{
 		readonly TextWriter writer;
+		readonly bool ownsWriter;
 		int indent;
 		bool needsIndent;
 
@@ -44,11 +45,19 @@ namespace ICSharpCode.Decompiler
 			if (writer == null)
 				throw new ArgumentNullException(nameof(writer));
 			this.writer = writer;
+			this.ownsWriter = false;
 		}
 
 		public PlainTextOutput()
 		{
 			this.writer = new StringWriter();
+			this.ownsWriter = true;
+		}
+
+		public void Dispose()
+		{
+			if (ownsWriter)
+				writer.Dispose();
 		}
 
 		public TextLocation Location {

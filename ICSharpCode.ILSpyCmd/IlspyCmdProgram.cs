@@ -10,6 +10,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ICSharpCode.BamlDecompiler;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.ProjectDecompiler;
@@ -52,6 +53,15 @@ Examples:
     Generate a HTML diagrammer containing filtered type info into a custom output folder
     (including types in the LightJson namespace while excluding types in nested LightJson.Serialization namespace)
         ilspycmd sample.dll --generate-diagrammer -o c:\diagrammer --generate-diagrammer-include LightJson\\..+ --generate-diagrammer-exclude LightJson\\.Serialization\\..+
+
+    List all embedded resources in a WPF assembly (including BAML entries inside .g.resources containers).
+        ilspycmd sample.dll --list-resources
+
+    Extract a single resource. If the name ends with .baml, the output is decompiled XAML; otherwise raw bytes.
+        ilspycmd sample.dll --resource sample.g.resources/mainwindow.baml -o c:\decompiled
+
+    Decompile assembly as a compilable project and convert all BAML resources to XAML Page items.
+        ilspycmd sample.dll -p -o c:\decompiled --decompile-baml
 ")]
 	[HelpOption("-h|--help")]
 	[ProjectOptionRequiresOutputDirectoryValidation]
@@ -92,6 +102,15 @@ Examples:
 
 		[Option("-l|--list <entity-type(s)>", "Lists all entities of the specified type(s). Valid types: c(lass), i(nterface), s(truct), d(elegate), e(num)", CommandOptionType.MultipleValue)]
 		public string[] EntityTypes { get; } = Array.Empty<string>();
+
+		[Option("--list-resources", "Lists all embedded resources in the assembly. Entries inside .resources containers are listed individually as '<container>/<entry>'.", CommandOptionType.NoValue)]
+		public bool ListResourcesFlag { get; }
+
+		[Option("--resource <name>", "Extract a single resource by name (as printed by --list-resources). Resources whose name ends with '.baml' are decompiled to XAML.", CommandOptionType.SingleValue)]
+		public string ResourceName { get; }
+
+		[Option("--decompile-baml", "When used with -p, decompile BAML resources to XAML files (Page items) instead of leaving them as raw byte streams.", CommandOptionType.NoValue)]
+		public bool DecompileBamlFlag { get; }
 
 		public string DecompilerVersion => "ilspycmd: " + typeof(ILSpyCmdProgram).Assembly.GetName().Version.ToString() +
 				Environment.NewLine
@@ -257,8 +276,8 @@ Examples:
 					var checkResult = await updateCheckTask;
 					if (null != checkResult && checkResult.UpdateRecommendation)
 					{
-						Console.WriteLine("You are not using the latest version of the tool, please update.");
-						Console.WriteLine($"Latest version is '{checkResult.LatestVersion}' (yours is '{checkResult.RunningVersion}')");
+						app.Error.WriteLine("You are not using the latest version of the tool, please update.");
+						app.Error.WriteLine($"Latest version is '{checkResult.LatestVersion}' (yours is '{checkResult.RunningVersion}')");
 					}
 				}
 			}
@@ -305,6 +324,20 @@ Examples:
 				else if (DumpPackageFlag)
 				{
 					return DumpPackageAssemblies(fileName, outputDirectory, app);
+				}
+				else if (ListResourcesFlag)
+				{
+					if (outputDirectory != null)
+					{
+						string outputName = Path.GetFileNameWithoutExtension(fileName);
+						output = File.CreateText(Path.Combine(outputDirectory, outputName) + ".resources.txt");
+					}
+
+					return ListResources(fileName, output);
+				}
+				else if (ResourceName != null)
+				{
+					return ExtractResource(fileName, ResourceName, output, outputDirectory, app);
 				}
 				else
 				{
@@ -430,6 +463,85 @@ Examples:
 			return 0;
 		}
 
+		int ListResources(string assemblyFileName, TextWriter output)
+		{
+			var module = new PEFile(assemblyFileName);
+			foreach (var path in ResourceExtensions.EnumerateResourcePaths(module))
+			{
+				output.WriteLine(path);
+			}
+			return 0;
+		}
+
+		int ExtractResource(string assemblyFileName, string resourceName, TextWriter output, string outputDirectory, CommandLineApplication app)
+		{
+			var module = new PEFile(assemblyFileName);
+			if (!ResourceExtensions.TryGetResource(module, resourceName, out object value))
+			{
+				app.Error.WriteLine($"Resource '{resourceName}' not found.");
+				app.Error.WriteLine("Available resources:");
+				foreach (var p in ResourceExtensions.EnumerateResourcePaths(module))
+					app.Error.WriteLine("  " + p);
+				return ProgramExitCodes.EX_DATAERR;
+			}
+
+			bool isBaml = resourceName.EndsWith(".baml", StringComparison.OrdinalIgnoreCase);
+			if (isBaml && value is byte[] bamlBytes)
+			{
+				var resolver = new UniversalAssemblyResolver(assemblyFileName, false, module.Metadata.DetectTargetFrameworkId());
+				foreach (var path in (ReferencePaths ?? Array.Empty<string>()))
+					resolver.AddSearchDirectory(path);
+				var bamlSettings = new BamlDecompilerSettings {
+					ThrowOnAssemblyResolveErrors = GetSettings(module).ThrowOnAssemblyResolveErrors
+				};
+
+				using var bamlStream = new MemoryStream(bamlBytes);
+				var xaml = ResourceExtensions.DecompileBaml(module, resolver, bamlStream, bamlSettings, CancellationToken.None);
+				if (outputDirectory != null)
+				{
+					string xamlFile = WholeProjectDecompiler.SanitizeFileName(Path.GetFileNameWithoutExtension(resourceName) + ".xaml");
+					string fullPath = Path.Combine(outputDirectory, xamlFile);
+					xaml.Save(fullPath);
+				}
+				else
+				{
+					output.Write(xaml.ToString());
+				}
+				return 0;
+			}
+
+			if (value is byte[] binary)
+			{
+				if (outputDirectory != null)
+				{
+					string fileName = WholeProjectDecompiler.SanitizeFileName(Path.GetFileName(resourceName));
+					string fullPath = Path.Combine(outputDirectory, fileName);
+					File.WriteAllBytes(fullPath, binary);
+				}
+				else
+				{
+					var stdout = Console.OpenStandardOutput();
+					stdout.Write(binary, 0, binary.Length);
+					stdout.Flush();
+				}
+			}
+			else
+			{
+				string text = value as string ?? value?.ToString() ?? string.Empty;
+				if (outputDirectory != null)
+				{
+					string fileName = WholeProjectDecompiler.SanitizeFileName(Path.GetFileName(resourceName));
+					string fullPath = Path.Combine(outputDirectory, fileName);
+					File.WriteAllText(fullPath, text);
+				}
+				else
+				{
+					output.Write(text);
+				}
+			}
+			return 0;
+		}
+
 		int ShowIL(string assemblyFileName, TextWriter output)
 		{
 			var module = new PEFile(assemblyFileName);
@@ -450,7 +562,21 @@ Examples:
 			{
 				resolver.AddSearchDirectory(path);
 			}
-			var decompiler = new WholeProjectDecompiler(GetSettings(module), resolver, null, resolver, TryLoadPDB(module));
+			var settings = GetSettings(module);
+			var debugInfo = TryLoadPDB(module);
+			WholeProjectDecompiler decompiler;
+			if (DecompileBamlFlag)
+			{
+				var bamlTypeSystem = new BamlDecompilerTypeSystem(module, resolver);
+				var bamlSettings = new BamlDecompilerSettings {
+					ThrowOnAssemblyResolveErrors = settings.ThrowOnAssemblyResolveErrors
+				};
+				decompiler = new BamlAwareWholeProjectDecompiler(settings, resolver, resolver, debugInfo, bamlTypeSystem, bamlSettings);
+			}
+			else
+			{
+				decompiler = new WholeProjectDecompiler(settings, resolver, null, resolver, debugInfo);
+			}
 			using (var projectFileWriter = new StreamWriter(File.OpenWrite(projectFileName)))
 				return decompiler.DecompileProject(module, Path.GetDirectoryName(projectFileName), projectFileWriter);
 		}

@@ -32,7 +32,7 @@ using ICSharpCode.Decompiler.TypeSystem;
 
 namespace ICSharpCode.Decompiler.Metadata
 {
-	public class WebCilFile : MetadataFile, IDisposable, IModuleReference
+	public sealed class WebCilFile : MetadataFile, IModuleReference
 	{
 		readonly MemoryMappedViewAccessor view;
 		readonly long webcilOffset;
@@ -245,9 +245,11 @@ namespace ICSharpCode.Decompiler.Metadata
 			return new MetadataModule(context.Compilation, this, TypeSystemOptions.Default);
 		}
 
-		public void Dispose()
+		protected override void Dispose(bool disposing)
 		{
-			view.Dispose();
+			if (disposing)
+				view.Dispose();
+			base.Dispose(disposing);
 		}
 
 		public struct WebcilHeader

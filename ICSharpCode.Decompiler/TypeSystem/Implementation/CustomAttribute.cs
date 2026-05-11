@@ -40,6 +40,7 @@ namespace ICSharpCode.Decompiler.TypeSystem.Implementation
 		CustomAttributeValue<IType> value;
 		bool valueDecoded;
 		bool hasDecodeErrors;
+		readonly object syncRoot = new object();
 
 		internal CustomAttribute(MetadataModule module, IMethod attrCtor, CustomAttributeHandle handle)
 		{
@@ -76,7 +77,7 @@ namespace ICSharpCode.Decompiler.TypeSystem.Implementation
 
 		void DecodeValue()
 		{
-			lock (this)
+			lock (syncRoot)
 			{
 				try
 				{

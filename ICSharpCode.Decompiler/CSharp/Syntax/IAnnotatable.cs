@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
@@ -115,6 +116,8 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 			{
 			}
 
+			[SuppressMessage("Reliability", "CA2002:Do not lock on objects with weak identity",
+				Justification = "AnnotationList is a private nested type — the surrounding Annotatable class deliberately locks on the AnnotationList instance to serialize annotation reads/writes; external code cannot obtain a reference to it.")]
 			public object Clone()
 			{
 				lock (this)

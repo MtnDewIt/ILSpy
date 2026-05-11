@@ -318,7 +318,7 @@ namespace ICSharpCode.Decompiler.Metadata
 			fixed (byte* input = bytes)
 			{
 
-				byte* output = GetRealPath(input, null);
+				byte* output = NativeMethods.GetRealPath(input, null);
 				if (output == null)
 				{
 					return null;
@@ -330,15 +330,18 @@ namespace ICSharpCode.Decompiler.Metadata
 				}
 				byte[] result = new byte[len];
 				Marshal.Copy((IntPtr)output, result, 0, result.Length);
-				Free(output);
+				NativeMethods.Free(output);
 				return encoding.GetString(result);
 			}
 		}
 
-		[DllImport("libc", EntryPoint = "realpath")]
-		static extern unsafe byte* GetRealPath(byte* path, byte* resolvedPath);
+		static class NativeMethods
+		{
+			[DllImport("libc", EntryPoint = "realpath")]
+			internal static extern unsafe byte* GetRealPath(byte* path, byte* resolvedPath);
 
-		[DllImport("libc", EntryPoint = "free")]
-		static extern unsafe void Free(void* ptr);
+			[DllImport("libc", EntryPoint = "free")]
+			internal static extern unsafe void Free(void* ptr);
+		}
 	}
 }

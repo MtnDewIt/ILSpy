@@ -24,7 +24,7 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 	{
 		public readonly static TokenRole ExtensionKeywordRole = new TokenRole("extension");
 
-		public override SymbolKind SymbolKind => throw new System.NotImplementedException();
+		public override SymbolKind SymbolKind => SymbolKind.TypeDefinition;
 
 		public AstNodeCollection<TypeParameterDeclaration> TypeParameters {
 			get { return GetChildrenByRole(Roles.TypeParameter); }

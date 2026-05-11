@@ -31,7 +31,7 @@ namespace ICSharpCode.Decompiler.Util
 	/// <summary>
 	/// .resources file.
 	/// </summary>
-	public class ResourcesFile : IEnumerable<KeyValuePair<string, object?>>, IDisposable
+	public sealed class ResourcesFile : IEnumerable<KeyValuePair<string, object?>>, IDisposable
 	{
 		sealed class MyBinaryReader : BinaryReader
 		{

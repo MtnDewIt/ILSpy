@@ -215,7 +215,7 @@ namespace ICSharpCode.Decompiler.IL
 						return false; // operator not supported on pointer types
 				}
 			}
-			else if ((type.IsKnownType(KnownTypeCode.IntPtr) || type.IsKnownType(KnownTypeCode.UIntPtr)) && type.Kind is not TypeKind.NInt or TypeKind.NUInt)
+			else if ((type.IsKnownType(KnownTypeCode.IntPtr) || type.IsKnownType(KnownTypeCode.UIntPtr)) && type.Kind is not (TypeKind.NInt or TypeKind.NUInt))
 			{
 				// If the LHS is C# 9 IntPtr (but not nint or C# 11 IntPtr):
 				// "target.intptr *= 2;" is compiler error, but

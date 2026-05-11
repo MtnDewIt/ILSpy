@@ -340,6 +340,8 @@ namespace ICSharpCode.ILSpyX
 		{
 			VerifyAccess();
 			file = Path.GetFullPath(file);
+			LoadedAssembly evicted;
+			LoadedAssembly newAsm;
 			lock (lockObj)
 			{
 				if (!byFilename.TryGetValue(file, out LoadedAssembly? target))
@@ -348,7 +350,7 @@ namespace ICSharpCode.ILSpyX
 				if (index < 0)
 					return null;
 
-				var newAsm = new LoadedAssembly(this, file, stream: Task.FromResult<Stream?>(stream),
+				newAsm = new LoadedAssembly(this, file, stream: Task.FromResult<Stream?>(stream),
 					fileLoaders: manager?.LoaderRegistry,
 					applyWinRTProjections: ApplyWinRTProjections, useDebugSymbols: UseDebugSymbols);
 				newAsm.IsAutoLoaded = target.IsAutoLoaded;
@@ -356,8 +358,10 @@ namespace ICSharpCode.ILSpyX
 				Debug.Assert(newAsm.FileName == file);
 				byFilename[file] = newAsm;
 				this.assemblies[index] = newAsm;
-				return newAsm;
+				evicted = target;
 			}
+			evicted.Dispose();
+			return newAsm;
 		}
 
 		public LoadedAssembly? ReloadAssembly(string file)
@@ -387,6 +391,7 @@ namespace ICSharpCode.ILSpyX
 				this.assemblies.Remove(target);
 				this.assemblies.Insert(index, newAsm);
 			}
+			target.Dispose();
 			return newAsm;
 		}
 
@@ -398,16 +403,21 @@ namespace ICSharpCode.ILSpyX
 				assemblies.Remove(assembly);
 				byFilename.Remove(assembly.FileName);
 			}
+			assembly.Dispose();
 		}
 
 		public void Clear()
 		{
 			VerifyAccess();
+			LoadedAssembly[] removed;
 			lock (lockObj)
 			{
+				removed = assemblies.ToArray();
 				assemblies.Clear();
 				byFilename.Clear();
 			}
+			foreach (var asm in removed)
+				asm.Dispose();
 		}
 		public void Sort(IComparer<LoadedAssembly> comparer)
 		{

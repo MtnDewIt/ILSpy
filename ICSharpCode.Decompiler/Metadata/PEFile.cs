@@ -31,7 +31,7 @@ using ICSharpCode.Decompiler.TypeSystem;
 namespace ICSharpCode.Decompiler.Metadata
 {
 	[DebuggerDisplay("{FileName}")]
-	public class PEFile : MetadataFile, IDisposable, IModuleReference
+	public sealed class PEFile : MetadataFile, IModuleReference
 	{
 		public PEReader Reader { get; }
 
@@ -55,9 +55,11 @@ namespace ICSharpCode.Decompiler.Metadata
 		public override int MetadataOffset => Reader.PEHeaders.MetadataStartOffset;
 		public override bool IsMetadataOnly => false;
 
-		public void Dispose()
+		protected override void Dispose(bool disposing)
 		{
-			Reader.Dispose();
+			if (disposing)
+				Reader.Dispose();
+			base.Dispose(disposing);
 		}
 
 		IModule TypeSystem.IModuleReference.Resolve(ITypeResolveContext context)

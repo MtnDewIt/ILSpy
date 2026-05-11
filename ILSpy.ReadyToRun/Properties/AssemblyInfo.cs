@@ -8,7 +8,8 @@ using System.Runtime.Versioning;
 [assembly: TargetPlatform("Windows10.0")]
 [assembly: SupportedOSPlatform("Windows7.0")]
 
-// General Information about an assembly is controlled through the following 
+// General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: NeutralResourcesLanguage("en-US")]
+[assembly: AssemblyVersion("1.0.0.0")]

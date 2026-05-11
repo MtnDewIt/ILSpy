@@ -52,7 +52,7 @@ namespace ICSharpCode.ILSpyX
 	///   * a file that is still being loaded in the background
 	/// </summary>
 	[DebuggerDisplay("[LoadedAssembly {shortName}]")]
-	public sealed class LoadedAssembly
+	public sealed class LoadedAssembly : IDisposable
 	{
 		/// <summary>
 		/// Maps from MetadataFile (successfully loaded .NET module) back to the LoadedAssembly instance
@@ -652,5 +652,14 @@ namespace ICSharpCode.ILSpyX
 		}
 
 		UniversalAssemblyResolver? universalResolver;
+
+		public void Dispose()
+		{
+			if (loadingTask.Status == TaskStatus.RanToCompletion)
+			{
+				loadingTask.Result.MetadataFile?.Dispose();
+			}
+			(debugInfoProvider as IDisposable)?.Dispose();
+		}
 	}
 }
