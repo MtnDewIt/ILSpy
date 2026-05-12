@@ -80,8 +80,28 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
             $"bin\\tools\\bonobo\\TagWatcherConfig.xml",
         ];
 
+		public static readonly string[] PROJECT_EXTERNAL_DEPENDENCIES = 
+		[
+			$"bin\\tools\\bonobo\\Interop.WMPLib.dll",
+			$"bin\\tools\\bonobo\\Microsoft.Practices.Composite.dll",
+			$"bin\\tools\\bonobo\\Microsoft.Practices.Composite.Presentation.dll",
+			$"bin\\tools\\bonobo\\sqlceca35.dll",
+			$"bin\\tools\\bonobo\\sqlcecompact35.dll",
+			$"bin\\tools\\bonobo\\sqlceer35EN.dll",
+			$"bin\\tools\\bonobo\\sqlceme35.dll",
+			$"bin\\tools\\bonobo\\sqlceoledb35.dll",
+			$"bin\\tools\\bonobo\\sqlceqp35.dll",
+			$"bin\\tools\\bonobo\\sqlcese35.dll",
+			$"bin\\tools\\bonobo\\System.CoreEx.dll",
+			$"bin\\tools\\bonobo\\System.Data.SqlServerCe.dll",
+			$"bin\\tools\\bonobo\\System.Data.SqlServerCe.Entity.dll",
+			$"bin\\tools\\bonobo\\System.Reactive.dll",
+			$"bin\\tools\\bonobo\\WPFToolkit.dll",
+		];
+
         public string[] GetProjects() => DOTNET_PROJECTS;
         public string[] GetRelativePaths() => DOTNET_RELATIVE_PATHS;
         public string[] GetXMLRelativePaths() => PROJECT_XML_RELATIVE_PATHS;
-    }
+		public string[] GetExternalRelativePaths() => PROJECT_EXTERNAL_DEPENDENCIES;
+	}
 }

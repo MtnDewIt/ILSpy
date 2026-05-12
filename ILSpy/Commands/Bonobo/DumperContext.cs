@@ -21,6 +21,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
         public static string[] Projects { get; set; }
         public static string[] RelativePaths { get; set; }
         public static string[] XMLRelativePaths { get; set; }
+		public static string[] ExternalRelativePaths { get; set; }
 
         public static bool Init(SettingsService settings) 
         {
@@ -52,8 +53,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
             Projects = BuildInfo?.GetProjects();
             RelativePaths = BuildInfo?.GetRelativePaths();
             XMLRelativePaths = BuildInfo?.GetXMLRelativePaths();
+			ExternalRelativePaths = BuildInfo?.GetExternalRelativePaths();
 
-            ProjectDumpPath = $"{OutputPath}\\Bonobo-{Build}\\Dump";
+			ProjectDumpPath = $"{OutputPath}\\Bonobo-{Build}\\Dump";
             ProjectOutputPath = $"{OutputPath}\\Bonobo-{Build}\\Output";
 			ProjectDependenciesPath = $"{OutputPath}\\Bonobo-{Build}\\Output\\Dependencies";
 

@@ -5,5 +5,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
         public string[] GetProjects();
         public string[] GetRelativePaths();
         public string[] GetXMLRelativePaths();
-    }
+		public string[] GetExternalRelativePaths();
+	}
 }

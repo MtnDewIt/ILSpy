@@ -50,8 +50,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					Directory.CreateDirectory(outputPath);
 				}
 
+				dumper.GenerateProjectFile(project);
+
 				Dumper.GenerateProjectSolution(project);
-				Dumper.GenerateProjectFile(project);
 
 				AssemblyInfoGenerator.Init(project);
 				AssemblyInfoGenerator.GenerateAssemblyInfo(project);
@@ -80,6 +81,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 
 			Dumper.GenerateMainSolution(DumperContext.Projects);
+			Dumper.GenerateBuildProps();
 		}
 	}
 }
