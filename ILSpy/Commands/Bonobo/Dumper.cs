@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Xml.Linq;
 
 using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp.ProjectDecompiler;
 using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.ILSpy.AssemblyTree;
 using ICSharpCode.ILSpy.Docking;
@@ -22,7 +24,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		static DecompilationOptions options;
 		static MetadataFile metadataFile;
 
-		static ProjectType[] projectTypes;
+		static ProjectType[] projectTypes = [];
+		static List<string> embeddedResources = [];
 
 		const int indentSize = 4;
 		static readonly string indent = new(' ', indentSize);
@@ -49,8 +52,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			"System.Drawing",
 			"System.Runtime",
 			"System.Runtime.Extensions",
+			"System.Runtime.Serialization",
 			"System.Windows.Forms",
 			"System.Xaml",
+			"System.Xml",
 			"System.Xml.Linq",
 			"WindowsBase"
 		};
@@ -88,12 +93,15 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				var projectFileOutput = new PlainTextOutput(projectFileWriter);
 				languageService.Language.DecompileAssembly(loadedAssembly, projectFileOutput, options);
 			}
+
+			embeddedResources = WholeProjectDecompiler.fileTable.Where(x => string.Equals(x.ItemType, "EmbeddedResource")).ToList().ConvertAll(x => x.FileName);
 		}
 
 		public void Clear()
 		{
 			options = null;
 			metadataFile = null;
+			embeddedResources.Clear();
 			assemblyTreeModel.AssemblyList.Clear();
 		}
 
@@ -166,10 +174,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputType>{outputType}</OutputType>");
 
-			// #TODO: Handle application icon
-			if (false)
+			if (embeddedResources.Any(x => x.EndsWith(".ico")))
 			{
-				sb.AppendLine($"{solutionIndent}{solutionIndent}<ApplicationIcon>..\\Assets\\</ApplicationIcon>");
+				string iconName = embeddedResources.Where(x => x.EndsWith(".ico")).FirstOrDefault();
+
+				sb.AppendLine($"{solutionIndent}{solutionIndent}<ApplicationIcon>..\\Assets\\{iconName}</ApplicationIcon>");
 			}
 
 			switch (project)
@@ -197,9 +206,19 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				}
 			}
 
-			string outputPath = DumperContext.RelativePaths.Where(x => x.Contains(project)).FirstOrDefault();
+			string outputPath = DumperContext.RelativePaths.Where(x => x.Contains(DumperContext.BuildInfo.FilterRelativePath(project))).FirstOrDefault();
 
-			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputPath>..\\bin\\$(Platform)\\$(Configuration)\\{Path.GetDirectoryName(outputPath)}\\</OutputPath>");
+			outputPath = Path.GetDirectoryName(outputPath);
+
+			if (!string.IsNullOrEmpty(outputPath))
+			{
+				outputPath += "\\";
+				outputPath = outputPath.Replace("Foundation", "Bonobo");
+			}
+
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputPath>..\\bin\\$(Platform)\\$(Configuration)\\{outputPath}</OutputPath>");
+
+			outputPath = string.Empty;
 
 			sb.AppendLine($"{solutionIndent}</PropertyGroup>");
 
@@ -260,14 +279,16 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 						{
 							string name = DumperContext.ExternalRelativePaths.Where(x => x.Contains(dependency.Name)).FirstOrDefault();
 
-							if (!string.IsNullOrEmpty(name) && !internalDependencies.Contains(name))
+							// System.CoreEx is never explicitly referenced in any project, so we don't need to include it
+							if (!string.IsNullOrEmpty(name) && !internalDependencies.Contains(name) && !name.Contains("System.CoreEx"))
 							{
 								internalDependencies.Add(name);
 							}
 						}
 					}
 
-					if (!string.IsNullOrEmpty(dependencyName) && !internalDependencies.Contains(dependencyName))
+					// System.CoreEx is never explicitly referenced in any project, so we don't need to include it
+					if (!string.IsNullOrEmpty(dependencyName) && !internalDependencies.Contains(dependencyName) && !dependencyName.Contains("System.CoreEx"))
 					{
 						internalDependencies.Add(dependencyName);
 					}
@@ -278,6 +299,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			references.Sort();
 			externalDependencies.Sort();
 			internalDependencies.Sort();
+			embeddedResources.Sort();
 
 			// Parse Project DLL References (The existing plugin DLLs that we are decompiling)
 			if (dependencies.Count > 0)
@@ -286,7 +308,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 				foreach (var dependency in dependencies)
 				{
-					if (dependency.Contains("ManagedBlam.dll"))
+					if (dependency.Contains("\\ManagedBlam.dll"))
 					{
 						sb.AppendLine($"{solutionIndent}{solutionIndent}<Reference Include=\"..\\Dependencies\\{dependency}\" Private=\"false\" />");
 					}
@@ -335,6 +357,19 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				foreach (var internalDependency in internalDependencies)
 				{
 					sb.AppendLine($"{solutionIndent}{solutionIndent}<Reference Include=\"..\\Dependencies\\{internalDependency}\" Private=\"false\" />");
+				}
+
+				sb.AppendLine($"{solutionIndent}</ItemGroup>");
+			}
+
+			// Parse Embedded Resources (Files and resources referenced inside of the project)
+			if (embeddedResources.Count > 0)
+			{
+				sb.AppendLine($"{solutionIndent}<ItemGroup>");
+
+				foreach (var embeddedResource in embeddedResources)
+				{
+					sb.AppendLine($"{solutionIndent}{solutionIndent}<Resource Include=\"{embeddedResource}\" />");
 				}
 
 				sb.AppendLine($"{solutionIndent}</ItemGroup>");

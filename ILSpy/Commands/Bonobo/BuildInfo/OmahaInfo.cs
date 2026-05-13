@@ -103,5 +103,15 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
         public string[] GetRelativePaths() => DOTNET_RELATIVE_PATHS;
         public string[] GetXMLRelativePaths() => PROJECT_XML_RELATIVE_PATHS;
 		public string[] GetExternalRelativePaths() => PROJECT_EXTERNAL_DEPENDENCIES;
+
+		public string FilterRelativePath(string path)
+		{
+			if (path.Contains("Bonobo") && !path.Contains("Interfaces") && !path.Contains("PluginSystem"))
+			{
+				return path.Replace("Bonobo", "Foundation");
+			}
+
+			return path;
+		}
 	}
 }

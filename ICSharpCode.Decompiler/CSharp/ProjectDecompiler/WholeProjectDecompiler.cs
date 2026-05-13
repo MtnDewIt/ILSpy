@@ -49,6 +49,8 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 	{
 		const int maxSegmentLength = 255;
 
+		public static List<ProjectItemInfo> fileTable = [];
+
 		#region Settings
 		/// <summary>
 		/// Gets the setting this instance uses for decompiling.
@@ -147,6 +149,8 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 
 		public ProjectId DecompileProject(MetadataFile file, string targetDirectory, TextWriter projectFileWriter, CancellationToken cancellationToken = default(CancellationToken))
 		{
+			fileTable.Clear();
+
 			if (string.IsNullOrEmpty(targetDirectory))
 			{
 				throw new InvalidOperationException("Must set TargetDirectory");
@@ -154,19 +158,19 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 			TargetDirectory = targetDirectory;
 			directories.Clear();
 			var resources = WriteResourceFilesInProject(file).ToList();
-			var files = WriteCodeFilesInProject(file, resources.SelectMany(r => r.PartialTypes ?? Enumerable.Empty<PartialTypeInfo>()).ToList(), cancellationToken).ToList();
-			files.AddRange(resources);
+			fileTable = WriteCodeFilesInProject(file, resources.SelectMany(r => r.PartialTypes ?? Enumerable.Empty<PartialTypeInfo>()).ToList(), cancellationToken).ToList();
+			fileTable.AddRange(resources);
 			var module = file as PEFile;
 			if (module != null)
 			{
-				files.AddRange(WriteMiscellaneousFilesInProject(module));
+				fileTable.AddRange(WriteMiscellaneousFilesInProject(module));
 			}
 			if (StrongNameKeyFile != null)
 			{
 				File.Copy(StrongNameKeyFile, Path.Combine(targetDirectory, Path.GetFileName(StrongNameKeyFile)), overwrite: true);
 			}
 
-			projectWriter.Write(projectFileWriter, this, files, file);
+			projectWriter.Write(projectFileWriter, this, fileTable, file);
 
 			string platformName = module != null ? TargetServices.GetPlatformName(module) : "AnyCPU";
 			return new ProjectId(platformName, ProjectGuid, ProjectTypeGuids.CSharpWindows);
@@ -478,11 +482,14 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 			if (resources == null)
 				yield break;
 
-			byte[] appIcon = CreateApplicationIcon(resources);
-			if (appIcon != null)
+			if (!fileTable.Any(x => string.Equals(x.ItemType, "EmbeddedResource") && x.FileName.EndsWith(".ico")))
 			{
-				File.WriteAllBytes(Path.Combine(TargetDirectory, "app.ico"), appIcon);
-				yield return new ProjectItemInfo("ApplicationIcon", "app.ico");
+				byte[] appIcon = CreateApplicationIcon(resources);
+				if (appIcon != null)
+				{
+					File.WriteAllBytes(Path.Combine(TargetDirectory, "app.ico"), appIcon);
+					yield return new ProjectItemInfo("ApplicationIcon", "app.ico");
+				}
 			}
 
 			byte[] appManifest = CreateApplicationManifest(resources);

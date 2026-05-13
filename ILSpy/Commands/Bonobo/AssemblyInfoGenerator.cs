@@ -88,24 +88,33 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			ParseCopyright(sb);
 			ParseTrademark(sb);
 			ParseCulture(sb);
-			
-			sb.AppendLine();
-			sb.AppendLine(visible);
-			sb.AppendLine();
+
+			if (!string.IsNullOrEmpty(visible))
+			{
+				sb.AppendLine();
+				sb.AppendLine(visible);
+				sb.AppendLine();
+			}
 
 			ParseVersion(sb);
 			ParseFileVersion(sb);
 
-			sb.AppendLine();
-			sb.AppendLine(theme);
-			sb.AppendLine();
-
-			foreach (string attribute in ContentAttributes)
+			if (!string.IsNullOrEmpty(theme))
 			{
-				sb.AppendLine(attribute);
+				sb.AppendLine();
+				sb.AppendLine(theme);
+				sb.AppendLine();
 			}
 
-			sb.AppendLine();
+			if (ContentAttributes.Count > 0)
+			{
+				foreach (string attribute in ContentAttributes)
+				{
+					sb.AppendLine(attribute);
+				}
+
+				sb.AppendLine();
+			}
 
 			if (!Directory.Exists(directory))
 			{
@@ -124,7 +133,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				title = $"[assembly: AssemblyTitle(\"{ProjectName}\")]";
 			}
 
-			sb.AppendLine(title);
+			if (!string.IsNullOrEmpty(title))
+			{
+				sb.AppendLine(title);
+			}
 		}
 
 		public static void ParseDescription(StringBuilder sb)
@@ -136,7 +148,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				description = $"[assembly: AssemblyDescription(\"\")]";
 			}
 
-			sb.AppendLine(description);
+			if (!string.IsNullOrEmpty(description))
+			{
+				sb.AppendLine(description);
+			}
 		}
 
 		public static void ParseConfiguration(StringBuilder sb)
@@ -148,7 +163,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				configuration = $"[assembly: AssemblyConfiguration(\"\")]";
 			}
 
-			sb.AppendLine(configuration);
+			if (!string.IsNullOrEmpty(configuration))
+			{
+				sb.AppendLine(configuration);
+			}
 		}
 
 		public static void ParseCompany(StringBuilder sb)
@@ -160,7 +178,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				company = $"[assembly: AssemblyCompany(\"\")]";
 			}
 
-			sb.AppendLine(company);
+			if (!string.IsNullOrEmpty(company))
+			{
+				sb.AppendLine(company);
+			}
 		}
 
 		public static void ParseProduct(StringBuilder sb)
@@ -172,7 +193,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				product = $"[assembly: AssemblyProduct(\"{ProjectName}\")]";
 			}
 
-			sb.AppendLine(product);
+			if (!string.IsNullOrEmpty(product))
+			{
+				sb.AppendLine(product);
+			}
 		}
 
 		public static void ParseCopyright(StringBuilder sb)
@@ -184,7 +208,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				copyright = $"[assembly: AssemblyCopyright(\"Copyright © {DateTime.Now.Year}\")]";
 			}
 
-			sb.AppendLine(copyright);
+			if (!string.IsNullOrEmpty(copyright))
+			{
+				sb.AppendLine(copyright);
+			}
 		}
 
 		public static void ParseTrademark(StringBuilder sb)
@@ -196,7 +223,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				trademark = $"[assembly: AssemblyTrademark(\"HaloMods ™ {DateTime.Now.Year}\")]";
 			}
 
-			sb.AppendLine(trademark);
+			if (!string.IsNullOrEmpty(trademark))
+			{
+				sb.AppendLine(trademark);
+			}
 		}
 
 		public static void ParseCulture(StringBuilder sb)
@@ -208,7 +238,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				culture = $"[assembly: AssemblyCulture(\"\")]";
 			}
 
-			sb.AppendLine(culture);
+			if (!string.IsNullOrEmpty(culture))
+			{
+				sb.AppendLine(culture);
+			}
 		}
 
 		public static void ParseVersion(StringBuilder sb) 
@@ -220,7 +253,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				version = $"[assembly: AssemblyVersion(\"{MajorVersion}.{MinorVersion}.{BuildVersion}.{PrivateVersion}\")]";
 			}
 
-			sb.AppendLine(version);
+			if (!string.IsNullOrEmpty(version))
+			{
+				sb.AppendLine(version);
+			}
 		}
 
 		public static void ParseFileVersion(StringBuilder sb)
@@ -232,7 +268,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				fileVersion = $"[assembly: AssemblyFileVersion(\"{MajorVersion}.{MinorVersion}.{BuildVersion}.{PrivateVersion}\")]";
 			}
 
-			sb.AppendLine(fileVersion);
+			if (!string.IsNullOrEmpty(fileVersion))
+			{
+				sb.AppendLine(fileVersion);
+			}
 		}
 	}
 }
