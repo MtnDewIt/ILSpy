@@ -85,6 +85,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			options = dockWorkspace.ActiveTabPage.CreateDecompilationOptions();
 			options.FullDecompilation = true;
 			options.SaveAsProjectDirectory = outputPath;
+			options.DecompilerSettings.FileScopedNamespaces = false;
 
 			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + languageService.Language.ProjectFileExtension);
 
