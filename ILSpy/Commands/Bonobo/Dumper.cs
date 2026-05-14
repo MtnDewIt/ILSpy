@@ -178,7 +178,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			{
 				string iconName = embeddedResources.Where(x => x.EndsWith(".ico")).FirstOrDefault();
 
-				sb.AppendLine($"{solutionIndent}{solutionIndent}<ApplicationIcon>..\\Assets\\{iconName}</ApplicationIcon>");
+				sb.AppendLine($"{solutionIndent}{solutionIndent}<ApplicationIcon>{FilterResource(iconName)}</ApplicationIcon>");
 			}
 
 			switch (project)
@@ -234,6 +234,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					dependencies.Add("bin\\ManagedBlam.dll");
 				}
 
+				if (string.Equals(reference.Name, "Foundation") && !references.Contains("Bonobo"))
+				{
+					references.Add("Bonobo");
+				}
+
 				if (DumperContext.Projects.Any(x => x.Contains(reference.Name)))
 				{
 					string projectName = DumperContext.Projects.Where(x => x.StartsWith(reference.Name)).FirstOrDefault();
@@ -256,7 +261,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 					if (!string.IsNullOrEmpty(dependencyName) && !externalDependencies.Contains(dependencyName))
 					{
-						if (!string.Equals(reference.Name, "managedblam"))
+						if (!string.Equals(reference.Name, "managedblam") && !string.Equals(reference.Name, "Foundation"))
 						{
 							externalDependencies.Add(reference.Name);
 						}
@@ -343,7 +348,14 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 				foreach (var externalDependency in externalDependencies)
 				{
-					sb.AppendLine($"{solutionIndent}{solutionIndent}<Reference Include=\"{externalDependency}\" Private=\"false\" />");
+					if (externalDependency.Contains("Corinth.Farm.ServiceContracts"))
+					{
+						sb.AppendLine($"{solutionIndent}{solutionIndent}<!-- <Reference Include=\"{externalDependency}\" Private=\"false\" /> -->");
+					}
+					else
+					{
+						sb.AppendLine($"{solutionIndent}{solutionIndent}<Reference Include=\"{externalDependency}\" Private=\"false\" />");
+					}
 				}
 
 				sb.AppendLine($"{solutionIndent}</ItemGroup>");
@@ -365,14 +377,20 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			// Parse Embedded Resources (Files and resources referenced inside of the project)
 			if (embeddedResources.Count > 0)
 			{
-				sb.AppendLine($"{solutionIndent}<ItemGroup>");
-
-				foreach (var embeddedResource in embeddedResources)
+				if (embeddedResources.All(x => !x.EndsWith(".resx")))
 				{
-					sb.AppendLine($"{solutionIndent}{solutionIndent}<Resource Include=\"{embeddedResource}\" />");
-				}
+					sb.AppendLine($"{solutionIndent}<ItemGroup>");
 
-				sb.AppendLine($"{solutionIndent}</ItemGroup>");
+					foreach (var embeddedResource in embeddedResources)
+					{
+						if (!embeddedResource.EndsWith(".resx"))
+						{
+							sb.AppendLine($"{solutionIndent}{solutionIndent}<Resource Include=\"{FilterResource(embeddedResource)}\" />");
+						}
+					}
+
+					sb.AppendLine($"{solutionIndent}</ItemGroup>");
+				}
 			}
 
 			sb.AppendLine($"</Project>");
@@ -430,6 +448,23 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 
 			return "Library";
+		}
+
+		public static string FilterResource(string resource) 
+		{
+			if (resource.Contains("bonobo.ico"))
+			{
+				resource = resource.Replace("bonobo.ico", "Bonobo.ico");
+				return $"..\\Assets\\Bonobo\\{Path.GetFileName(resource)}";
+			}
+
+			if (resource.Contains("splash.png"))
+			{
+				resource = resource.Replace("splash.png", "BonoboSplash.png");
+				return $"..\\Assets\\Bonobo\\{Path.GetFileName(resource)}";
+			}
+
+			return $"{Path.GetDirectoryName(resource).PathToPascalCase()}\\{Path.GetFileName(resource)}";
 		}
 	}
 }
