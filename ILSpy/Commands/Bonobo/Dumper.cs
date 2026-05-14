@@ -193,17 +193,14 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					break;
 			}
 
-			foreach (ProjectType type in projectTypes)
+			if (projectTypes.Any(x => x == ProjectType.Wpf))
 			{
-				switch (type)
-				{
-					case ProjectType.Wpf:
-						sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWPF>True</UseWPF>");
-						break;
-					case ProjectType.WinForms:
-						sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWindowsForms>True</UseWindowsForms>");
-						break;
-				}
+				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWPF>True</UseWPF>");
+			}
+
+			if (projectTypes.Any(x => x == ProjectType.WinForms))
+			{
+				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWindowsForms>True</UseWindowsForms>");
 			}
 
 			string outputPath = DumperContext.RelativePaths.Where(x => x.Contains(DumperContext.BuildInfo.FilterRelativePath(project))).FirstOrDefault();
@@ -255,7 +252,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					}
 				}
 
-				if (DumperContext.Projects.All(x => !x.Contains(reference.Name)) && DumperContext.ExternalRelativePaths.All(x => !x.Contains(reference.Name)))
+				if (DumperContext.ExternalRelativePaths.All(x => !x.Contains(reference.Name)) && DumperContext.Projects.All(x => !x.Contains(reference.Name)))
 				{
 					string dependencyName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
 
@@ -268,9 +265,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					}
 				}
 
-				if (DumperContext.ExternalRelativePaths.Any(x => x.Contains(reference.Name)))
+				if (DumperContext.ExternalRelativePaths.Any(x => x.Contains($"{reference.Name}.dll")) && DumperContext.Projects.All(x => !x.Contains(reference.Name)))
 				{
-					string dependencyName = DumperContext.ExternalRelativePaths.Where(x => x.Contains(reference.Name)).FirstOrDefault();
+					string dependencyName = DumperContext.ExternalRelativePaths.Where(x => x.Contains($"{reference.Name}.dll")).FirstOrDefault();
 
 					string dependencyPath = $"{DumperContext.BonoboPath}\\{dependencyName}";
 
@@ -280,9 +277,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 					foreach (var dependency in dependencyMetadata.AssemblyReferences)
 					{
-						if (DumperContext.ExternalRelativePaths.Any(x => x.Contains(dependency.Name)))
+						if (DumperContext.ExternalRelativePaths.Any(x => x.Contains($"{dependency.Name}.dll")) && DumperContext.Projects.All(x => !x.Contains(dependency.Name)))
 						{
-							string name = DumperContext.ExternalRelativePaths.Where(x => x.Contains(dependency.Name)).FirstOrDefault();
+							string name = DumperContext.ExternalRelativePaths.Where(x => x.Contains($"{dependency.Name}.dll")).FirstOrDefault();
 
 							// System.CoreEx is never explicitly referenced in any project, so we don't need to include it
 							if (!string.IsNullOrEmpty(name) && !internalDependencies.Contains(name) && !name.Contains("System.CoreEx"))
@@ -311,16 +308,16 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			{
 				sb.AppendLine($"{solutionIndent}<ItemGroup>");
 
-				foreach (var dependency in dependencies)
+				foreach (var dependency in dependencies.Where(x => !x.Contains("\\ManagedBlam.dll")))
 				{
-					if (dependency.Contains("\\ManagedBlam.dll"))
-					{
-						sb.AppendLine($"{solutionIndent}{solutionIndent}<Reference Include=\"..\\Dependencies\\{dependency}\" Private=\"false\" />");
-					}
-					else
-					{
-						sb.AppendLine($"{solutionIndent}{solutionIndent}<!-- <Reference Include=\"..\\Dependencies\\{dependency}\" Private=\"false\" /> -->");
-					}
+					sb.AppendLine($"{solutionIndent}{solutionIndent}<!-- <Reference Include=\"..\\Dependencies\\{dependency}\" Private=\"false\" /> -->");
+				}
+
+				if (dependencies.Any(x => x.Contains("\\ManagedBlam.dll")))
+				{
+					var dependency = dependencies.Where(x => x.Contains("\\ManagedBlam.dll")).FirstOrDefault();
+
+					sb.AppendLine($"{solutionIndent}{solutionIndent}<Reference Include=\"..\\Dependencies\\{dependency}\" Private=\"false\" />");
 				}
 
 				sb.AppendLine($"{solutionIndent}</ItemGroup>");
