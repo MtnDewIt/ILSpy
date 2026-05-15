@@ -1,3 +1,4 @@
+using System;
 using System.Composition;
 using System.IO;
 
@@ -50,6 +51,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				dumper.DumpBonoboProject(project, projectIndex);
 
 				string outputPath = $"{DumperContext.BonoboProjectOutputPath}\\{project}";
+				string dumpPath = $"{DumperContext.BonoboProjectDumpPath}\\{project}";
 
 				if (!Directory.Exists(outputPath))
 				{
@@ -64,6 +66,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				AssemblyInfoGenerator.GenerateBonoboAssemblyInfo(project);
 
 				// Filter XAML Files (They never get put in the right directory)
+				FilterBonoboFiles(dumpPath);
+
+				DumperContext.BuildInfo.CleanupProjectDump(project);
 
 				dumper.Clear();
 			}
@@ -111,6 +116,73 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			Dumper.GenerateManagedBuildProps();
 
 			dumper.Clear();
+		}
+
+		public static void FilterBonoboFiles(string projectPath) 
+		{
+			try
+			{
+				string[] xamlFiles = Directory.GetFiles(projectPath, "*.xaml", SearchOption.AllDirectories);
+
+				foreach (string xamlFile in xamlFiles)
+				{
+					string fileName = Path.GetFileName(xamlFile);
+					string nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+					string parentDir = Path.GetDirectoryName(xamlFile);
+
+					string convertedName = nameWithoutExt.Replace('.', Path.DirectorySeparatorChar);
+
+					string newBasePath = Path.Combine(parentDir, convertedName);
+					string newXamlPath = newBasePath + ".xaml";
+
+					string codeFile = newBasePath + ".cs";
+					string xamlCodeFile = newBasePath + ".xaml.cs";
+
+					try
+					{
+						string newXamlDir = Path.GetDirectoryName(newXamlPath);
+						if (!Directory.Exists(newXamlDir))
+						{
+							Directory.CreateDirectory(newXamlDir);
+						}
+
+						File.Move(xamlFile, newXamlPath, true);
+
+						if (File.Exists(codeFile))
+						{
+							File.Move(codeFile, xamlCodeFile, true);
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine("FATAL ERROR: " + ex.Message);
+					}
+				}
+
+				DeleteEmptyFolders(projectPath);
+			}
+			catch (IOException ex)
+			{
+				Console.WriteLine(ex.ToString());
+			}
+		}
+
+		public static void DeleteEmptyFolders(string path)
+		{
+			if (!Directory.Exists(path))
+			{
+				return;
+			}
+
+			foreach (string directory in Directory.GetDirectories(path))
+			{
+				DeleteEmptyFolders(directory);
+			}
+
+			if (Directory.GetFiles(path).Length == 0 && Directory.GetDirectories(path).Length == 0)
+			{
+				Directory.Delete(path);
+			}
 		}
 	}
 }
