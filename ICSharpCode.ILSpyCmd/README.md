@@ -9,8 +9,8 @@ dotnet tool install --global ilspycmd
 Help output (`ilspycmd --help`):
 
 ```
-ilspycmd: 9.0.0.7847
-ICSharpCode.Decompiler: 9.0.0.7847
+ilspycmd: 10.1.0.8361
+ICSharpCode.Decompiler: 10.1.0.8361
 
 dotnet tool for decompiling .NET assemblies and generating portable PDBs
 
@@ -32,13 +32,21 @@ Options:
   -usepdb|--use-varnames-from-pdb         Use variable names from PDB.
   -l|--list <entity-type(s)>              Lists all entities of the specified type(s). Valid types: c(lass),
                                           i(nterface), s(truct), d(elegate), e(num)
+  --list-resources                        Lists all embedded resources in the assembly. Entries inside .resources
+                                          containers are listed individually as '<container>/<entry>'.
+  --resource <name>                       Extract a single resource by name (as printed by --list-resources). Resources
+                                          whose name ends with '.baml' are decompiled to XAML.
+  --decompile-baml                        When used with -p, decompile BAML resources to XAML files (Page items) instead
+                                          of leaving them as raw byte streams.
   -lv|--languageversion <version>         C# Language version: CSharp1, CSharp2, CSharp3, CSharp4, CSharp5, CSharp6,
                                           CSharp7, CSharp7_1, CSharp7_2, CSharp7_3, CSharp8_0, CSharp9_0, CSharp10_0,
-                                          Preview or Latest
+                                          CSharp11_0, CSharp12_0, CSharp13_0, Preview or Latest
                                           Allowed values are: CSharp1, CSharp2, CSharp3, CSharp4, CSharp5, CSharp6,
                                           CSharp7, CSharp7_1, CSharp7_2, CSharp7_3, CSharp8_0, CSharp9_0, CSharp10_0,
-                                          CSharp11_0, Preview, CSharp12_0, Latest.
+                                          CSharp11_0, CSharp12_0, CSharp13_0, CSharp14_0, Preview, Latest.
                                           Default value is: Latest.
+  --ilspy-settingsfile <path>             Path to an ILSpy settings file.
+  -ds|--decompiler-setting <value>        Set a decompiler setting. Use multiple times to set multiple settings.
   -r|--referencepath <path>               Path to a directory containing dependencies of the assembly that is being
                                           decompiled.
   --no-dead-code                          Remove dead code.
@@ -92,6 +100,15 @@ Examples:
     Generate a HTML diagrammer containing filtered type info into a custom output folder
     (including types in the LightJson namespace while excluding types in nested LightJson.Serialization namespace)
         ilspycmd sample.dll --generate-diagrammer -o c:\diagrammer --generate-diagrammer-include LightJson\\..+ --generate-diagrammer-exclude LightJson\\.Serialization\\..+
+
+    List all embedded resources in a WPF assembly (including BAML entries inside .g.resources containers).
+        ilspycmd sample.dll --list-resources
+
+    Extract a single resource. If the name ends with .baml, the output is decompiled XAML; otherwise raw bytes.
+        ilspycmd sample.dll --resource sample.g.resources/mainwindow.baml -o c:\decompiled
+
+    Decompile assembly as a compilable project and convert all BAML resources to XAML Page items.
+        ilspycmd sample.dll -p -o c:\decompiled --decompile-baml
 ```
 
 ## Generate HTML diagrammers

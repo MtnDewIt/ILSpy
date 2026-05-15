@@ -947,11 +947,40 @@ namespace ICSharpCode.ILSpy.AssemblyTree
 
 		private void RefreshInternal()
 		{
+			RefreshInternalAsync().HandleExceptions();
+		}
+
+		private async Task RefreshInternalAsync()
+		{
 			using (Keyboard.FocusedElement.PreserveFocus())
 			{
 				var path = GetPathForNode(SelectedItem);
 
 				ShowAssemblyList(settingsService.AssemblyListManager.LoadList(AssemblyList.ListName));
+
+				// Ensure the assembly is loaded before FindNodeByPath, so lazy-loaded
+				// resource nodes (e.g. .baml entries) are present in the tree.
+				if (path?.Length > 0)
+				{
+					var rootAssembly = AssemblyList.FindAssembly(path[0]);
+					if (rootAssembly != null)
+					{
+						// FindNodeByPath() blocks the UI if the assembly is not yet loaded,
+						// so use an async wait instead.
+						var preAwaitSelection = SelectedItem;
+						await rootAssembly.GetMetadataFileAsync().Catch<Exception>(_ => { });
+
+						// If the user navigated to a different node while the assembly
+						// was loading, respect that — don't restore the pre-refresh path.
+						// A change to null counts too (e.g. user cleared the selection).
+						if (!ReferenceEquals(SelectedItem, preAwaitSelection))
+						{
+							RefreshDecompiledView();
+							return;
+						}
+					}
+				}
+
 				SelectNode(FindNodeByPath(path, true), inNewTabPage: false);
 
 				RefreshDecompiledView();

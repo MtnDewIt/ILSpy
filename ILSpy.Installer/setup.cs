@@ -36,6 +36,9 @@ namespace ILSpy.Installer
 								  new Files(Path.Combine(buildOutputDir, "ILSpy.resources.dll")),
 								  new Files(Path.Combine(buildOutputDir, "ILSpy.ReadyToRun.Plugin.resources.dll"))));
 
+			// https://github.com/oleg-shilo/wixsharp/issues/1900 in addition to the pipeline dotnet tool install command
+			WixExtension.UI.PreferredVersion = "6.0.2";
+
 #if ARM64
 			project.Platform = Platform.arm64;
 #else
