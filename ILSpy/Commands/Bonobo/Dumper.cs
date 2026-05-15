@@ -462,7 +462,35 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public void GenerateManagedProjectFile() 
 		{
-			
+			StringBuilder sb = new StringBuilder();
+
+			GetProjectTypes();
+
+			string outputType = GetOutputType();
+
+			sb.AppendLine($"<Project Sdk=\"Microsoft.NET.Sdk\">");
+
+			sb.AppendLine($"{solutionIndent}<PropertyGroup>");
+
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputType>{outputType}</OutputType>");
+
+			if (projectTypes.Any(x => x == ProjectType.Wpf))
+			{
+				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWPF>True</UseWPF>");
+			}
+
+			if (projectTypes.Any(x => x == ProjectType.WinForms))
+			{
+				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWindowsForms>True</UseWindowsForms>");
+			}
+
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputPath>..\\bin\\$(Platform)\\$(Configuration)\\</OutputPath>");
+
+			sb.AppendLine($"{solutionIndent}</PropertyGroup>");
+
+			sb.AppendLine($"</Project>");
+
+			File.WriteAllText($"{DumperContext.ManagedProjectOutputPath}\\ManagedBlam\\ManagedBlam.csproj", sb.ToString());
 		}
 
 		public static void GetProjectTypes()

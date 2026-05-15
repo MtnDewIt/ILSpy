@@ -102,11 +102,13 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				Directory.CreateDirectory(outputPath);
 			}
 
-			Dumper.GenerateMainManagedSolution();
-			Dumper.GenerateManagedBuildProps();
+			dumper.GenerateManagedProjectFile();
 
 			AssemblyInfoGenerator.ManagedInit();
 			AssemblyInfoGenerator.GenerateManagedAssemblyInfo();
+
+			Dumper.GenerateMainManagedSolution();
+			Dumper.GenerateManagedBuildProps();
 
 			dumper.Clear();
 		}
