@@ -99,10 +99,13 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			$"bin\\tools\\bonobo\\WPFToolkit.dll",
 		];
 
-        public string[] GetProjects() => DOTNET_PROJECTS;
+		public static readonly string MANAGED_RELATIVE_PATH = $"bin\\ManagedBlam.dll";
+
+		public string[] GetProjects() => DOTNET_PROJECTS;
         public string[] GetRelativePaths() => DOTNET_RELATIVE_PATHS;
         public string[] GetXMLRelativePaths() => PROJECT_XML_RELATIVE_PATHS;
 		public string[] GetExternalRelativePaths() => PROJECT_EXTERNAL_DEPENDENCIES;
+		public string GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
 
 		public string FilterRelativePath(string path)
 		{

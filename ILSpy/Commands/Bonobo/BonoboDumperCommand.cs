@@ -25,7 +25,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			dumper.Init(assemblyTreeModel, languageService, dockWorkspace);
 		}
 
-		public override async void Execute(object parameter)
+		public override void Execute(object parameter)
 		{
 			bool initialized = DumperContext.Init(settingsService);
 
@@ -34,42 +34,46 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				return;
 			}
 
-			DumperContext.ValidateProjectDumpPath();
-			DumperContext.ValidateProjectOutputPath();
+			DumpBonobo();
+			DumpManaged();
+		}
+
+		public void DumpBonobo() 
+		{
+			DumperContext.ValidateBonoboDumpPath();
+			DumperContext.ValidateBonoboOutputPath();
 
 			for (int projectIndex = 0; projectIndex < DumperContext.Projects.Length; projectIndex++)
 			{
 				string project = DumperContext.Projects[projectIndex];
 
-				dumper.Dump(project, projectIndex);
+				dumper.DumpBonoboProject(project, projectIndex);
 
-				string outputPath = $"{DumperContext.ProjectOutputPath}\\{project}";
+				string outputPath = $"{DumperContext.BonoboProjectOutputPath}\\{project}";
 
 				if (!Directory.Exists(outputPath))
 				{
 					Directory.CreateDirectory(outputPath);
 				}
 
-				dumper.GenerateProjectFile(project);
+				dumper.GenerateBonoboProjectFile(project);
 
-				Dumper.GenerateProjectSolution(project);
+				Dumper.GenerateBonoboProjectSolution(project);
 
-				AssemblyInfoGenerator.Init(project);
-				AssemblyInfoGenerator.GenerateAssemblyInfo(project);
+				AssemblyInfoGenerator.BonoboInit(project);
+				AssemblyInfoGenerator.GenerateBonoboAssemblyInfo(project);
 
 				// Filter XAML Files (They never get put in the right directory)
-
-				// Update Namespace Handling (It always dumps its above the class declaration, instead of wrapping around it)
 
 				dumper.Clear();
 			}
 
-			DumperContext.ValidateDependenciesPath();
+			DumperContext.ValidateBonoboDependenciesPath();
 
 			for (int dependencyIndex = 0; dependencyIndex < DumperContext.XMLRelativePaths.Length; dependencyIndex++)
 			{
 				string source = $"{DumperContext.BonoboPath}\\{DumperContext.XMLRelativePaths[dependencyIndex]}";
-				string destination = $"{DumperContext.ProjectDependenciesPath}\\{DumperContext.XMLRelativePaths[dependencyIndex]}";
+				string destination = $"{DumperContext.BonoboProjectDependenciesPath}\\{DumperContext.XMLRelativePaths[dependencyIndex]}";
 				string directory = Path.GetDirectoryName(destination);
 
 				if (!Directory.Exists(directory))
@@ -80,8 +84,31 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				File.Copy(source, destination, true);
 			}
 
-			Dumper.GenerateMainSolution(DumperContext.Projects);
-			Dumper.GenerateBuildProps();
+			Dumper.GenerateMainBonoboSolution();
+			Dumper.GenerateBonoboBuildProps();
+		}
+
+		public void DumpManaged() 
+		{
+			DumperContext.ValidateManagedDumpPath();
+			DumperContext.ValidateManagedOutputPath();
+
+			dumper.DumpManagedProject();
+
+			string outputPath = $"{DumperContext.ManagedProjectOutputPath}\\ManagedBlam";
+
+			if (!Directory.Exists(outputPath))
+			{
+				Directory.CreateDirectory(outputPath);
+			}
+
+			Dumper.GenerateMainManagedSolution();
+			Dumper.GenerateManagedBuildProps();
+
+			AssemblyInfoGenerator.ManagedInit();
+			AssemblyInfoGenerator.GenerateManagedAssemblyInfo();
+
+			dumper.Clear();
 		}
 	}
 }

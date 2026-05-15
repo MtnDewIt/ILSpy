@@ -25,7 +25,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static string ProjectName;
 
-		public static void Init(string project)
+		public static void BonoboInit(string project)
 		{
 			ProjectName = project;
 
@@ -39,7 +39,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			BuildVersion = (uint)versionInfo.FileBuildPart;
 			PrivateVersion = (uint)versionInfo.FilePrivatePart;
 
-			string[] data = File.ReadAllLines($"{DumperContext.ProjectDumpPath}\\{project}\\Properties\\AssemblyInfo.cs");
+			string[] data = File.ReadAllLines($"{DumperContext.BonoboProjectDumpPath}\\{project}\\Properties\\AssemblyInfo.cs");
 
 			UsingAttributes = [.. data.Where(x =>
 				x.StartsWith("using"))];
@@ -63,9 +63,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
 		}
 
-		public static void GenerateAssemblyInfo(string project)
+		public static void GenerateBonoboAssemblyInfo(string project)
 		{
-			string path = $"{DumperContext.ProjectOutputPath}\\{project}\\Properties\\AssemblyInfo.cs";
+			string path = $"{DumperContext.BonoboProjectOutputPath}\\{project}\\Properties\\AssemblyInfo.cs";
 			string directory = Path.GetDirectoryName(path);
 
 			StringBuilder sb = new StringBuilder();
@@ -77,6 +77,104 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine();
 			
+			string visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
+			string theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
+
+			ParseTitle(sb);
+			ParseDescription(sb);
+			ParseConfiguration(sb);
+			ParseCompany(sb);
+			ParseProduct(sb);
+			ParseCopyright(sb);
+			ParseTrademark(sb);
+			ParseCulture(sb);
+
+			if (!string.IsNullOrEmpty(visible))
+			{
+				sb.AppendLine();
+				sb.AppendLine(visible);
+				sb.AppendLine();
+			}
+
+			ParseVersion(sb);
+			ParseFileVersion(sb);
+
+			if (!string.IsNullOrEmpty(theme))
+			{
+				sb.AppendLine();
+				sb.AppendLine(theme);
+				sb.AppendLine();
+			}
+
+			if (ContentAttributes.Count > 0)
+			{
+				foreach (string attribute in ContentAttributes)
+				{
+					sb.AppendLine(attribute);
+				}
+
+				sb.AppendLine();
+			}
+
+			if (!Directory.Exists(directory))
+			{
+				Directory.CreateDirectory(directory);
+			}
+
+			File.WriteAllText(path, sb.ToString());
+		}
+
+		public static void ManagedInit() 
+		{
+			ProjectName = "ManagedBlam";
+
+			string projectPath = $"{DumperContext.BonoboPath}\\{DumperContext.ManagedRelativePath}";
+
+			FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(projectPath);
+
+			MajorVersion = (uint)versionInfo.FileMajorPart;
+			MinorVersion = (uint)versionInfo.FileMinorPart;
+			BuildVersion = (uint)versionInfo.FileBuildPart;
+			PrivateVersion = (uint)versionInfo.FilePrivatePart;
+
+			string[] data = File.ReadAllLines($"{DumperContext.ManagedProjectDumpPath}\\Properties\\AssemblyInfo.cs");
+
+			UsingAttributes = [.. data.Where(x =>
+				x.StartsWith("using"))];
+
+			AssemblyAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: Assembly") &&
+				!x.Contains("Version(") &&
+				!x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
+
+			ComAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: Com"))];
+
+			VersionAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: Assembly") &&
+				x.Contains("Version("))];
+
+			ThemeAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: Theme"))];
+
+			ContentAttributes = [.. data.Where(x =>
+				x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
+		}
+
+		public static void GenerateManagedAssemblyInfo() 
+		{
+			string path = $"{DumperContext.ManagedProjectOutputPath}\\ManagedBlam\\Properties\\AssemblyInfo.cs";
+			string directory = Path.GetDirectoryName(path);
+
+			StringBuilder sb = new StringBuilder();
+
+			foreach (string attribute in UsingAttributes)
+			{
+				sb.AppendLine(attribute);
+			}
+
+			sb.AppendLine();
+
 			string visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
 			string theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
 
