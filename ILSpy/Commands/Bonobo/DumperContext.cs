@@ -29,10 +29,13 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
         public static bool Init(SettingsService settings) 
         {
-            Build = settings.BonoboDumperSettings.Build;
 			Platform = settings.BonoboDumperSettings.Platform;
 			OutputPath = settings.BonoboDumperSettings.OutputPath;
-            BonoboPath = settings.BonoboDumperSettings.BonoboPath;
+
+			Build = BuildType.Invalid;
+			BonoboPath = string.Empty;
+
+			RegistryHandler.FindEKPaths();
 
 			if (Build == BuildType.Invalid)
 			{

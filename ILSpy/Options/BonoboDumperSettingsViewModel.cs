@@ -42,26 +42,6 @@ namespace ICSharpCode.ILSpy.Options
 			}
 		}
 
-		public ICommand BonoboCommand => new Commands.DelegateCommand(Bonobo);
-		private void Bonobo()
-		{
-			var dlg = new OpenFolderDialog()
-			{
-				Title = "Select Editing Kit Path",
-			};
-
-			if (!string.IsNullOrEmpty(settings.BonoboPath))
-			{
-				dlg.InitialDirectory = settings.BonoboPath;
-			}
-
-			if (dlg.ShowDialog() == true)
-			{
-				settings.BonoboPath = dlg.FolderName;
-			}
-		}
-
-		public BuildType[] Builds => [.. Enum.GetValues<BuildType>().Where(x => x != BuildType.Invalid)];
 		public PlatformType[] Platforms => [.. Enum.GetValues<PlatformType>().Where(x => x != PlatformType.Invalid)];
 
 		public string Title => Properties.Resources.Bonobo_Dumper;
