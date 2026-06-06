@@ -68,8 +68,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				// Filter XAML Files (They never get put in the right directory)
 				FilterBonoboFiles(dumpPath);
 
-				DumperContext.BuildInfo.CleanupProjectDump(project);
-
 				dumper.Clear();
 			}
 
