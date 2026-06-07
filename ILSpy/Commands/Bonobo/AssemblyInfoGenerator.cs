@@ -9,7 +9,7 @@ using TomsToolbox.Essentials;
 
 namespace ICSharpCode.ILSpy.Commands.Bonobo
 {
-	public static class AssemblyInfoGenerator
+	public class AssemblyInfoGenerator
 	{
 		public static List<string> UsingAttributes = [];
 		public static List<string> AssemblyAttributes = [];
@@ -25,12 +25,19 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static string ProjectName;
 
-		public static void BonoboInit(string project)
+		public DumperContext Context;
+
+		public AssemblyInfoGenerator(DumperContext context) 
+		{
+			Context = context;
+		}
+
+		public void BonoboInit(string project)
 		{
 			ProjectName = project;
 
-			int projectIndex = DumperContext.Projects.IndexOf(project);
-			string projectPath = $"{DumperContext.BonoboPath}\\{DumperContext.RelativePaths[projectIndex]}";
+			int projectIndex = Context.Projects.IndexOf(project);
+			string projectPath = $"{Context.BonoboPath}\\{Context.RelativePaths[projectIndex]}";
 
 			FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(projectPath);
 
@@ -39,7 +46,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			BuildVersion = (uint)versionInfo.FileBuildPart;
 			PrivateVersion = (uint)versionInfo.FilePrivatePart;
 
-			string[] data = File.ReadAllLines($"{DumperContext.BonoboProjectDumpPath}\\{project}\\Properties\\AssemblyInfo.cs");
+			string[] data = File.ReadAllLines($"{Context.BonoboProjectDumpPath}\\{project}\\Properties\\AssemblyInfo.cs");
 
 			UsingAttributes = [.. data.Where(x =>
 				x.StartsWith("using"))];
@@ -63,9 +70,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
 		}
 
-		public static void GenerateBonoboAssemblyInfo(string project)
+		public void GenerateBonoboAssemblyInfo(string project)
 		{
-			string path = $"{DumperContext.BonoboProjectOutputPath}\\{project}\\Properties\\AssemblyInfo.cs";
+			string path = $"{Context.BonoboProjectOutputPath}\\{project}\\Properties\\AssemblyInfo.cs";
 			string directory = Path.GetDirectoryName(path);
 
 			StringBuilder sb = new StringBuilder();
@@ -124,11 +131,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			File.WriteAllText(path, sb.ToString());
 		}
 
-		public static void ManagedInit() 
+		public void ManagedInit() 
 		{
 			ProjectName = "ManagedBlam";
 
-			string projectPath = $"{DumperContext.BonoboPath}\\{DumperContext.ManagedRelativePath}";
+			string projectPath = $"{Context.BonoboPath}\\{Context.ManagedRelativePath}";
 
 			FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(projectPath);
 
@@ -137,7 +144,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			BuildVersion = (uint)versionInfo.FileBuildPart;
 			PrivateVersion = (uint)versionInfo.FilePrivatePart;
 
-			string[] data = File.ReadAllLines($"{DumperContext.ManagedProjectDumpPath}\\Properties\\AssemblyInfo.cs");
+			string[] data = File.ReadAllLines($"{Context.ManagedProjectDumpPath}\\Properties\\AssemblyInfo.cs");
 
 			UsingAttributes = [.. data.Where(x =>
 				x.StartsWith("using"))];
@@ -161,9 +168,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
 		}
 
-		public static void GenerateManagedAssemblyInfo() 
+		public void GenerateManagedAssemblyInfo() 
 		{
-			string path = $"{DumperContext.ManagedProjectOutputPath}\\ManagedBlam\\Properties\\AssemblyInfo.cs";
+			string path = $"{Context.ManagedProjectOutputPath}\\ManagedBlam\\Properties\\AssemblyInfo.cs";
 			string directory = Path.GetDirectoryName(path);
 
 			StringBuilder sb = new StringBuilder();

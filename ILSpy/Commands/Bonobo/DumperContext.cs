@@ -6,36 +6,37 @@ using ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo;
 
 namespace ICSharpCode.ILSpy.Commands.Bonobo
 {
-    public static class DumperContext
+    public class DumperContext
     {
-		public static BuildType Build { get; set; } = BuildType.Invalid;
-		public static PlatformType Platform { get; set; } = PlatformType.Invalid;
-        public static IBuildInfo BuildInfo { get; private set; }
+		public BuildType Build { get; set; } = BuildType.Invalid;
+		public PlatformType Platform { get; set; } = PlatformType.Invalid;
+        public IBuildInfo BuildInfo { get; private set; }
 
-        public static string OutputPath { get; set; }
-        public static string BonoboPath { get; set; }
-        public static string BonoboProjectDumpPath { get; set; }
-        public static string BonoboProjectOutputPath { get; set; }
-		public static string BonoboProjectDependenciesPath { get; set; }
+        public string OutputPath { get; set; }
+        public string BonoboPath { get; set; }
+        public string BonoboProjectDumpPath { get; set; }
+        public string BonoboProjectOutputPath { get; set; }
+		public string BonoboProjectDependenciesPath { get; set; }
 
-		public static string ManagedRelativePath { get; set; }
-		public static string ManagedProjectDumpPath { get; set; }
-		public static string ManagedProjectOutputPath { get; set; }
+		public string ManagedRelativePath { get; set; }
+		public string ManagedProjectDumpPath { get; set; }
+		public string ManagedProjectOutputPath { get; set; }
 
-		public static string[] Projects { get; set; }
-        public static string[] RelativePaths { get; set; }
-        public static string[] XMLRelativePaths { get; set; }
-		public static string[] ExternalRelativePaths { get; set; }
+		public string[] Projects { get; set; }
+        public string[] RelativePaths { get; set; }
+        public string[] XMLRelativePaths { get; set; }
+		public string[] ExternalRelativePaths { get; set; }
 
-        public static bool Init(SettingsService settings) 
+		public DumperContext(BuildType buildType, string buildPath)
+		{
+			Build = buildType;
+			BonoboPath = buildPath;
+		}
+
+		public bool Init(SettingsService settings) 
         {
 			Platform = settings.BonoboDumperSettings.Platform;
 			OutputPath = settings.BonoboDumperSettings.OutputPath;
-
-			Build = BuildType.Invalid;
-			BonoboPath = string.Empty;
-
-			RegistryHandler.FindEKPaths();
 
 			if (Build == BuildType.Invalid)
 			{
@@ -57,6 +58,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
             InitializeBuildInfo();
 
+			if (BuildInfo == null)
+			{
+				return false;
+			}
+
             Projects = BuildInfo?.GetProjects();
             RelativePaths = BuildInfo?.GetRelativePaths();
             XMLRelativePaths = BuildInfo?.GetXMLRelativePaths();
@@ -73,18 +79,22 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			return true;
         }
 
-        public static void InitializeBuildInfo()
+        public void InitializeBuildInfo()
         {
             BuildInfo = Build switch
             {
-                BuildType.Omaha => new OmahaInfo(),
+				BuildType.Blam => null,
+				BuildType.Prophets => null,
+				BuildType.Forerunner => new ForerunnerInfo(),
+				BuildType.Atlas => new AtlasInfo(),
+				BuildType.Omaha => new OmahaInfo(),
                 BuildType.Midnight => new MidnightInfo(),
                 BuildType.Groundhog => new GroundhogInfo(),
                 _ => throw new InvalidOperationException($"Unsupported build type: {Build}"),
             };
         }
 
-		public static void ValidateBonoboDumpPath()
+		public void ValidateBonoboDumpPath()
 		{
 			if (!Directory.Exists(BonoboProjectDumpPath))
 			{
@@ -92,7 +102,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 		}
 
-		public static void ValidateBonoboOutputPath()
+		public void ValidateBonoboOutputPath()
 		{
 			if (!Directory.Exists(BonoboProjectOutputPath))
 			{
@@ -100,7 +110,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 		}
 
-		public static void ValidateBonoboDependenciesPath()
+		public void ValidateBonoboDependenciesPath()
 		{
 			if (!Directory.Exists(BonoboProjectDependenciesPath))
 			{
@@ -108,7 +118,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 		}
 
-		public static void ValidateManagedDumpPath() 
+		public void ValidateManagedDumpPath() 
 		{
 			if (!Directory.Exists(ManagedProjectDumpPath))
 			{
@@ -116,7 +126,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			}
 		}
 
-		public static void ValidateManagedOutputPath() 
+		public void ValidateManagedOutputPath() 
 		{
 			if (!Directory.Exists(ManagedProjectOutputPath))
 			{

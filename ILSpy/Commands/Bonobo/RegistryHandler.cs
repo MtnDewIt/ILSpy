@@ -39,7 +39,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					.Select(path => path.Replace(".ApplicationCompany", string.Empty))
 					.Distinct(StringComparer.OrdinalIgnoreCase)];
 
-				var targetFiles = baseTargets
+				HashSet<string> targetFiles = baseTargets
 					.Concat(tagTestTargets.Keys)
 					.ToHashSet(StringComparer.OrdinalIgnoreCase);
 

@@ -16,9 +16,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 {
 	public class Dumper
 	{
-		AssemblyTreeModel assemblyTreeModel;
-		LanguageService languageService;
-		DockWorkspace dockWorkspace;
+		public AssemblyInfoGenerator AssemblyInfoGenerator;
+		public AssemblyTreeModel AssemblyTreeModel;
+		public SettingsService SettingsService;
+		public LanguageService LanguageService;
+		public DockWorkspace DockWorkspace;
+		public DumperContext Context;
 
 		static DecompilationOptions options;
 		static MetadataFile metadataFile;
@@ -32,14 +35,14 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		const int solutionIndentSize = 2;
 		static readonly string solutionIndent = new(' ', solutionIndentSize);
 
-		static readonly string platform = DumperContext.Platform.ToString();
+		static string platform = string.Empty;
 
 		const string aspNetCorePrefix = "Microsoft.AspNetCore";
 		const string presentationFrameworkName = "PresentationFramework";
 		const string windowsFormsName = "System.Windows.Forms";
 
-		static readonly string[] implicitReferences = new string[]
-		{
+		static readonly string[] implicitReferences =
+		[
 			"mscorlib",
 			"netstandard",
 			"PresentationCore",
@@ -57,41 +60,61 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			"System.Xml",
 			"System.Xml.Linq",
 			"WindowsBase"
-		};
+		];
 
-		public void Init(AssemblyTreeModel assemblyTreeModel, LanguageService languageService, DockWorkspace dockWorkspace)
+		public bool Init(
+			BuildType buildType, 
+			string buildPath, 
+			AssemblyTreeModel assemblyTreeModel,
+			SettingsService settingsService,
+			LanguageService languageService, 
+			DockWorkspace dockWorkspace)
 		{
-			this.assemblyTreeModel = assemblyTreeModel;
-			this.languageService = languageService;
-			this.dockWorkspace = dockWorkspace;
+			AssemblyTreeModel = assemblyTreeModel;
+			SettingsService = settingsService;
+			LanguageService = languageService;
+			DockWorkspace = dockWorkspace;
+
+			Context = new DumperContext(buildType, buildPath);
+
+			bool isInitialized = Context.Init(SettingsService);
+
+			if (!isInitialized)
+			{
+				return false;
+			}
+
+			AssemblyInfoGenerator = new AssemblyInfoGenerator(Context);
+
+			return true;
 		}
 
 		public void DumpBonoboProject(string project, int projectIndex)
 		{
-			string outputPath = $"{DumperContext.BonoboProjectDumpPath}\\{DumperContext.Projects![projectIndex]}";
-			string projectPath = $"{DumperContext.BonoboPath}\\{DumperContext.RelativePaths[projectIndex]}";
+			string outputPath = $"{Context.BonoboProjectDumpPath}\\{Context.Projects![projectIndex]}";
+			string projectPath = $"{Context.BonoboPath}\\{Context.RelativePaths[projectIndex]}";
 
 			if (!Directory.Exists(outputPath))
 			{
 				Directory.CreateDirectory(outputPath);
 			}
 
-			assemblyTreeModel.OpenFiles([projectPath]);
+			AssemblyTreeModel.OpenFiles([projectPath]);
 
-			var loadedAssembly = assemblyTreeModel.AssemblyList.FindAssembly(projectPath);
+			var loadedAssembly = AssemblyTreeModel.AssemblyList.FindAssembly(projectPath);
 			metadataFile = loadedAssembly.GetMetadataFileOrNull();
 
-			options = dockWorkspace.ActiveTabPage.CreateDecompilationOptions();
+			options = DockWorkspace.ActiveTabPage.CreateDecompilationOptions();
 			options.FullDecompilation = true;
 			options.SaveAsProjectDirectory = outputPath;
 			options.DecompilerSettings.FileScopedNamespaces = false;
 
-			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + languageService.Language.ProjectFileExtension);
+			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + LanguageService.Language.ProjectFileExtension);
 
 			using (var projectFileWriter = new StreamWriter(projectFileName))
 			{
 				var projectFileOutput = new PlainTextOutput(projectFileWriter);
-				languageService.Language.DecompileAssembly(loadedAssembly, projectFileOutput, options);
+				LanguageService.Language.DecompileAssembly(loadedAssembly, projectFileOutput, options);
 			}
 
 			embeddedResources = WholeProjectDecompiler.fileTable.Where(x => string.Equals(x.ItemType, "EmbeddedResource")).ToList().ConvertAll(x => x.FileName);
@@ -99,30 +122,30 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public void DumpManagedProject() 
 		{
-			string outputPath = $"{DumperContext.ManagedProjectDumpPath}";
-			string projectPath = $"{DumperContext.BonoboPath}\\{DumperContext.ManagedRelativePath}";
+			string outputPath = $"{Context.ManagedProjectDumpPath}";
+			string projectPath = $"{Context.BonoboPath}\\{Context.ManagedRelativePath}";
 
 			if (!Directory.Exists(outputPath))
 			{
 				Directory.CreateDirectory(outputPath);
 			}
 
-			assemblyTreeModel.OpenFiles([projectPath]);
+			AssemblyTreeModel.OpenFiles([projectPath]);
 
-			var loadedAssembly = assemblyTreeModel.AssemblyList.FindAssembly(projectPath);
+			var loadedAssembly = AssemblyTreeModel.AssemblyList.FindAssembly(projectPath);
 			metadataFile = loadedAssembly.GetMetadataFileOrNull();
 
-			options = dockWorkspace.ActiveTabPage.CreateDecompilationOptions();
+			options = DockWorkspace.ActiveTabPage.CreateDecompilationOptions();
 			options.FullDecompilation = true;
 			options.SaveAsProjectDirectory = outputPath;
 			options.DecompilerSettings.FileScopedNamespaces = false;
 
-			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + languageService.Language.ProjectFileExtension);
+			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + LanguageService.Language.ProjectFileExtension);
 
 			using (var projectFileWriter = new StreamWriter(projectFileName))
 			{
 				var projectFileOutput = new PlainTextOutput(projectFileWriter);
-				languageService.Language.DecompileAssembly(loadedAssembly, projectFileOutput, options);
+				LanguageService.Language.DecompileAssembly(loadedAssembly, projectFileOutput, options);
 			}
 
 			embeddedResources = WholeProjectDecompiler.fileTable.Where(x => string.Equals(x.ItemType, "EmbeddedResource")).ToList().ConvertAll(x => x.FileName);
@@ -133,10 +156,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			options = null;
 			metadataFile = null;
 			embeddedResources.Clear();
-			assemblyTreeModel.AssemblyList.Clear();
+			AssemblyTreeModel.AssemblyList.Clear();
 		}
 
-		public static void GenerateBonoboProjectSolution(string project)
+		public void GenerateBonoboProjectSolution(string project)
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -149,10 +172,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			sb.AppendLine($"{solutionIndent}</Project>");
 			sb.AppendLine($"</Solution>");
 
-			File.WriteAllText($"{DumperContext.BonoboProjectOutputPath}\\{project}\\{project}.slnx", sb.ToString());
+			File.WriteAllText($"{Context.BonoboProjectOutputPath}\\{project}\\{project}.slnx", sb.ToString());
 		}
 
-		public static void GenerateMainManagedSolution() 
+		public void GenerateMainManagedSolution() 
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -165,10 +188,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			sb.AppendLine($"{solutionIndent}</Project>");
 			sb.AppendLine($"</Solution>");
 
-			File.WriteAllText($"{DumperContext.ManagedProjectOutputPath}\\ManagedBlam.slnx", sb.ToString());
+			File.WriteAllText($"{Context.ManagedProjectOutputPath}\\ManagedBlam.slnx", sb.ToString());
 		}
 
-		public static void GenerateMainBonoboSolution()
+		public void GenerateMainBonoboSolution()
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -177,7 +200,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			sb.AppendLine($"{solutionIndent}{solutionIndent}<Platform Name=\"{platform}\" />");
 			sb.AppendLine($"{solutionIndent}</Configurations>");
 
-			foreach (string project in DumperContext.Projects)
+			foreach (string project in Context.Projects)
 			{
 				sb.AppendLine($"{solutionIndent}<Project Path=\"{project}\\{project}.csproj\">");
 				sb.AppendLine($"{solutionIndent}{solutionIndent}<Platform Project=\"{platform}\" />");
@@ -186,10 +209,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine($"</Solution>");
 
-			File.WriteAllText($"{DumperContext.BonoboProjectOutputPath}\\Bonobo.slnx", sb.ToString());
+			File.WriteAllText($"{Context.BonoboProjectOutputPath}\\Bonobo.slnx", sb.ToString());
 		}
 
-		public static void GenerateBonoboBuildProps()
+		public void GenerateBonoboBuildProps()
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -204,25 +227,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			sb.AppendLine($"{indent}</PropertyGroup>");
 			sb.AppendLine($"</Project>");
 
-			File.WriteAllText($"{DumperContext.BonoboProjectOutputPath}\\Directory.Build.props", sb.ToString());
-		}
-
-		public static void GenerateManagedBuildProps()
-		{
-			StringBuilder sb = new StringBuilder();
-
-			sb.AppendLine($"<Project>");
-			sb.AppendLine($"{indent}<PropertyGroup>");
-			sb.AppendLine($"{indent}{indent}<Platforms>{platform}</Platforms>");
-			sb.AppendLine($"{indent}{indent}<TargetFramework>net48</TargetFramework>");
-			sb.AppendLine($"{indent}{indent}<AllowUnsafeBlocks>true</AllowUnsafeBlocks>");
-			sb.AppendLine($"{indent}{indent}<GenerateAssemblyInfo>false</GenerateAssemblyInfo>");
-			sb.AppendLine($"{indent}{indent}<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>");
-			sb.AppendLine($"{indent}{indent}<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>");
-			sb.AppendLine($"{indent}</PropertyGroup>");
-			sb.AppendLine($"</Project>");
-
-			File.WriteAllText($"{DumperContext.ManagedProjectOutputPath}\\Directory.Build.props", sb.ToString());
+			File.WriteAllText($"{Context.BonoboProjectOutputPath}\\Directory.Build.props", sb.ToString());
 		}
 
 		public void GenerateBonoboProjectFile(string project)
@@ -268,7 +273,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWindowsForms>True</UseWindowsForms>");
 			}
 
-			string outputPath = DumperContext.RelativePaths.Where(x => x.Contains(DumperContext.BuildInfo.FilterRelativePath(project))).FirstOrDefault();
+			string outputPath = Context.RelativePaths.Where(x => x.Contains(Context.BuildInfo.FilterRelativePath(project))).FirstOrDefault();
 
 			outputPath = Path.GetDirectoryName(outputPath);
 
@@ -301,10 +306,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					references.Add("Bonobo");
 				}
 
-				if (DumperContext.Projects.Any(x => x.Contains(reference.Name)))
+				if (Context.Projects.Any(x => x.Contains(reference.Name)))
 				{
-					string projectName = DumperContext.Projects.Where(x => x.StartsWith(reference.Name)).FirstOrDefault();
-					string relativePath = DumperContext.RelativePaths.Where(x => x.Contains(reference.Name)).FirstOrDefault();
+					string projectName = Context.Projects.Where(x => x.StartsWith(reference.Name)).FirstOrDefault();
+					string relativePath = Context.RelativePaths.Where(x => x.Contains(reference.Name)).FirstOrDefault();
 
 					if (!string.IsNullOrEmpty(projectName) && !references.Contains(projectName))
 					{
@@ -317,9 +322,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					}
 				}
 
-				if (DumperContext.ExternalRelativePaths.All(x => !x.Contains(reference.Name)) && DumperContext.Projects.All(x => !x.Contains(reference.Name)))
+				if (Context.ExternalRelativePaths.All(x => !x.Contains(reference.Name)) && Context.Projects.All(x => !x.Contains(reference.Name)))
 				{
-					string dependencyName = DumperContext.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
+					string dependencyName = Context.Projects.Where(x => !x.StartsWith(reference.Name)).FirstOrDefault();
 
 					if (!string.IsNullOrEmpty(dependencyName) && !externalDependencies.Contains(dependencyName))
 					{
@@ -330,21 +335,21 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					}
 				}
 
-				if (DumperContext.ExternalRelativePaths.Any(x => x.Contains($"{reference.Name}.dll")) && DumperContext.Projects.All(x => !x.Contains(reference.Name)))
+				if (Context.ExternalRelativePaths.Any(x => x.Contains($"{reference.Name}.dll")) && Context.Projects.All(x => !x.Contains(reference.Name)))
 				{
-					string dependencyName = DumperContext.ExternalRelativePaths.Where(x => x.Contains($"{reference.Name}.dll")).FirstOrDefault();
+					string dependencyName = Context.ExternalRelativePaths.Where(x => x.Contains($"{reference.Name}.dll")).FirstOrDefault();
 
-					string dependencyPath = $"{DumperContext.BonoboPath}\\{dependencyName}";
+					string dependencyPath = $"{Context.BonoboPath}\\{dependencyName}";
 
-					assemblyTreeModel.OpenFiles([dependencyPath]);
-					var loadedAssembly = assemblyTreeModel.AssemblyList.FindAssembly(dependencyPath);
+					AssemblyTreeModel.OpenFiles([dependencyPath]);
+					var loadedAssembly = AssemblyTreeModel.AssemblyList.FindAssembly(dependencyPath);
 					MetadataFile dependencyMetadata = loadedAssembly.GetMetadataFileOrNull();
 
 					foreach (var dependency in dependencyMetadata.AssemblyReferences)
 					{
-						if (DumperContext.ExternalRelativePaths.Any(x => x.Contains($"{dependency.Name}.dll")) && DumperContext.Projects.All(x => !x.Contains(dependency.Name)))
+						if (Context.ExternalRelativePaths.Any(x => x.Contains($"{dependency.Name}.dll")) && Context.Projects.All(x => !x.Contains(dependency.Name)))
 						{
-							string name = DumperContext.ExternalRelativePaths.Where(x => x.Contains($"{dependency.Name}.dll")).FirstOrDefault();
+							string name = Context.ExternalRelativePaths.Where(x => x.Contains($"{dependency.Name}.dll")).FirstOrDefault();
 
 							// System.CoreEx is never explicitly referenced in any project, so we don't need to include it
 							if (!string.IsNullOrEmpty(name) && !internalDependencies.Contains(name) && !name.Contains("System.CoreEx"))
@@ -457,7 +462,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine($"</Project>");
 
-			File.WriteAllText($"{DumperContext.BonoboProjectOutputPath}\\{project}\\{project}.csproj", sb.ToString());
+			File.WriteAllText($"{Context.BonoboProjectOutputPath}\\{project}\\{project}.csproj", sb.ToString());
 		}
 
 		public void GenerateManagedProjectFile() 
@@ -474,6 +479,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputType>{outputType}</OutputType>");
 
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<Platforms>{platform}</Platforms>");
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<TargetFramework>net48</TargetFramework>");
+
 			if (projectTypes.Any(x => x == ProjectType.Wpf))
 			{
 				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWPF>True</UseWPF>");
@@ -484,13 +492,18 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				sb.AppendLine($"{solutionIndent}{solutionIndent}<UseWindowsForms>True</UseWindowsForms>");
 			}
 
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<AllowUnsafeBlocks>true</AllowUnsafeBlocks>");
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<GenerateAssemblyInfo>false</GenerateAssemblyInfo>");
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>");
+			sb.AppendLine($"{solutionIndent}{solutionIndent}<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>");
+
 			sb.AppendLine($"{solutionIndent}{solutionIndent}<OutputPath>..\\bin\\$(Platform)\\$(Configuration)\\</OutputPath>");
 
 			sb.AppendLine($"{solutionIndent}</PropertyGroup>");
 
 			sb.AppendLine($"</Project>");
 
-			File.WriteAllText($"{DumperContext.ManagedProjectOutputPath}\\ManagedBlam\\ManagedBlam.csproj", sb.ToString());
+			File.WriteAllText($"{Context.ManagedProjectOutputPath}\\ManagedBlam\\ManagedBlam.csproj", sb.ToString());
 		}
 
 		public static void GetProjectTypes()
