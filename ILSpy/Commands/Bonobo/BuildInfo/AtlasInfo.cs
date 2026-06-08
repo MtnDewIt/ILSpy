@@ -10,5 +10,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 		public string[] GetExternalRelativePaths() => null;
 		public string GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
 		public string FilterRelativePath(string path) => null;
+		
+		public void CleanupProjectDump(string project, string outputPath) 
+		{
+			return;
+		}
 	}
 }

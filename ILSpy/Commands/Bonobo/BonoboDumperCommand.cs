@@ -20,7 +20,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		private readonly DockWorkspace dockWorkspace;
 
 		private Dumper dumper;
-		private AssemblyInfoGenerator assemblyInfoGenerator;
 
 		[ImportingConstructor]
 		public BonoboDumperCommand(AssemblyTreeModel assemblyTreeModel, SettingsService settingsService, LanguageService languageService, DockWorkspace dockWorkspace)
@@ -56,7 +55,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public void Clear() 
 		{
 			dumper = null;
-			assemblyInfoGenerator = null;
 		}
 
 		public void Dump() 
@@ -97,6 +95,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 				// Filter XAML Files (They never get put in the right directory)
 				FilterBonoboFiles(dumpPath);
+
+				dumper.Context?.BuildInfo?.CleanupProjectDump(project, dumper.Context?.BonoboProjectDumpPath);
 
 				dumper.Clear();
 			}

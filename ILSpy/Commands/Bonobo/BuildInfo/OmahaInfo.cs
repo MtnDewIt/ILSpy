@@ -116,5 +116,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			return path;
 		}
+
+		public void CleanupProjectDump(string project, string outputPath)
+		{
+			return;
+		}
 	}
 }
