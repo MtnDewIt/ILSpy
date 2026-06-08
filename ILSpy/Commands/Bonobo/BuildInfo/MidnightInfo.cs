@@ -223,8 +223,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Plugins", $"{path}\\Plugins");
 
 			Directory.CreateDirectory($"{path}\\Themes");
-			File.Move($"{path}\\Bonobo\\AssetPlugin\\GenericResourceDictionary.xaml", $"{path}\\Themes\\Generic.xaml", true);
-			File.Move($"{path}\\Bonobo\\AssetPlugin\\GenericResourceDictionary.xaml.cs", $"{path}\\Themes\\Generic.xaml.cs", true);
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\AssetPlugin\\GenericResourceDictionary.xaml", $"{path}\\Themes\\Generic.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\AssetPlugin\\GenericResourceDictionary.xaml.cs", $"{path}\\Themes\\Generic.xaml.cs");
 
 			Directory.Delete($"{path}\\Bonobo", true);
 		}
@@ -236,137 +236,257 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.Rename($"{path}\\images", $"{path}\\Images");
 
+			DirectoryHelper.Rename($"{path}\\DemoCustomSectionComplete\\DemoScenarioSection.cs", $"{path}\\DemoCustomSectionComplete\\DemoScenarioSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\demo\\democustomsectioncomplete\\demoscenariosection.xaml", $"{path}\\DemoCustomSectionComplete\\DemoScenarioSection.xaml");
+			DirectoryHelper.Rename($"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.cs", $"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\demo\\democustomsectionwithdelete\\demoscenariosection.xaml", $"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.xaml");
+
 			Directory.Delete($"{path}\\Bonobo", true);
+			Directory.Delete($"{path}\\demo", true);
 		}
 
 		public static void CleanupBonobo(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Application", $"{path}");
+			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 
+			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
 		public static void CleanupBonoboConsole(string path)
 		{
-
+			DirectoryHelper.MoveFiles($"{path}\\BonoboConsole", $"{path}");
+			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 		}
 
 		public static void CleanupBonoboInterfaces(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\PluginSystem", $"{path}\\PluginSystem");
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Shared", $"{path}\\Shared");
 
+			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
 		public static void CleanupBonoboManagedBlamInterfaces(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\PluginSystem\\Custom", $"{path}");
 
+			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
 		public static void CleanupBonoboPluginSystem(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\PluginSystem", $"{path}");
 
+			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
 		public static void CleanupCorinthAsset(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\Asset", $"{path}");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupCorinthBlam(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\Blam", $"{path}");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupCorinthCore(string path)
 		{
+			//DirectoryHelper.Rename($"{path}\\Corinth\\UI\\WinForms\\InputBoxForm.cs", $"{path}\\Corinth\\UI\\WinForms\\InputBoxForm.Designer.cs");
+			//DirectoryHelper.Rename($"{path}\\Corinth\\UI\\WinForms\\ProgressBoxForm.cs", $"{path}\\Corinth\\UI\\WinForms\\ProgressBoxForm.Designer.cs");
 
+			DirectoryHelper.MoveFiles($"{path}\\Corinth.UI.WinForms.InputBoxForm.resx", $"{path}\\Corinth\\UI\\WinForms\\InputBoxForm.resx");
+			DirectoryHelper.MoveFiles($"{path}\\Corinth.UI.WinForms.ProgressBoxForm.resx", $"{path}\\Corinth\\UI\\WinForms\\ProgressBoxForm.resx");
+
+			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 		}
 
 		public static void CleanupCorinthCoreDatastore(string path)
 		{
-
+			DirectoryHelper.MoveFiles($"{path}\\Corinth", $"{path}");
 		}
 
 		public static void CleanupCorinthCoreWpf(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\UI", $"{path}\\UI");
 
+			DirectoryHelper.Rename($"{path}\\shaders", $"{path}\\Shaders");
+			DirectoryHelper.Rename($"{path}\\shaders\\ps", $"{path}\\Shaders\\PS");
+
+			DirectoryHelper.Rename($"{path}\\UI\\Wpf\\NoGlowProgressBar.cs", $"{path}\\UI\\Wpf\\NoGlowProgressBar.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\progressbars\\noglowprogressbar.xaml", $"{path}\\UI\\Wpf\\NoGlowProgressBar.xaml");
+
+			Directory.CreateDirectory($"{path}\\UI\\Wpf\\StatusLightExpander\\Themes");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\StatusLightExpander\\GenericResourceDictionary.xaml", $"{path}\\UI\\Wpf\\StatusLightExpander\\Themes\\Generic.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\StatusLightExpander\\GenericResourceDictionary.xaml.cs", $"{path}\\UI\\Wpf\\StatusLightExpander\\Themes\\Generic.xaml.cs");
+
+			Directory.CreateDirectory($"{path}\\Themes");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\GenericResourceDictionary.xaml", $"{path}\\Themes\\Generic.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\GenericResourceDictionary.xaml.cs", $"{path}\\Themes\\Generic.xaml.cs");
+
+			Directory.CreateDirectory($"{path}\\Themes\\Resources");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\ButtonResources.xaml", $"{path}\\Themes\\Resources\\ButtonResources.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\ButtonResources.xaml.cs", $"{path}\\Themes\\Resources\\ButtonResources.xaml.cs");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\ColorResources.xaml", $"{path}\\Themes\\Resources\\ColorResources.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\ColorResources.xaml.cs", $"{path}\\Themes\\Resources\\ColorResources.xaml.cs");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\IconResources.xaml", $"{path}\\Themes\\Resources\\IconResources.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\UI\\Wpf\\IconResources.xaml.cs", $"{path}\\Themes\\Resources\\IconResources.xaml.cs");
+
+			Directory.Delete($"{path}\\Corinth", true);
+			Directory.Delete($"{path}\\progressbars", true);
 		}
 
 		public static void CleanupCorinthPerforce(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\P4", $"{path}");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupCorinthSchema(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\Schema", $"{path}");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupCorinthSchemaBlam(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\Schema\\Blam", $"{path}");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupCorinthSourceDepot(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\SourceDepot", $"{path}");
+			DirectoryHelper.Rename($"{path}\\icons", $"{path}\\Icons");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupCorinthXbox(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\Utilities", $"{path}\\Utilities");
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\Xbox", $"{path}\\Xbox");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 
 		public static void CleanupGuiPlugin(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo", $"{path}");
 
+			Directory.CreateDirectory($"{path}\\Themes");
+			DirectoryHelper.MoveFiles($"{path}\\GuiPlugin\\GenericResourceDictionary.xaml", $"{path}\\Themes\\Generic.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\GuiPlugin\\GenericResourceDictionary.xaml.cs", $"{path}\\Themes\\Generic.xaml.cs");
+
+			Directory.CreateDirectory($"{path}\\GuiPlugin\\GuiDesigner\\Themes");
+			DirectoryHelper.MoveFiles($"{path}\\GuiPlugin\\GuiDesigner\\GenericResourceDictionary.xaml", $"{path}\\GuiPlugin\\GuiDesigner\\Themes\\Generic.xaml");
+			DirectoryHelper.MoveFiles($"{path}\\GuiPlugin\\GuiDesigner\\GenericResourceDictionary.xaml.cs", $"{path}\\GuiPlugin\\GuiDesigner\\Themes\\Generic.xaml.cs");
 		}
 
 		public static void CleanupLibrarianPlugin(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Plugins", $"{path}");
 
+			DirectoryHelper.Rename($"{path}\\librarian", $"{path}\\Librarian");
+			DirectoryHelper.Rename($"{path}\\modelanimationgraphcustomsection", $"{path}\\ModelAnimationGraphCustomSection");
+			DirectoryHelper.Rename($"{path}\\themes", $"{path}\\Themes");
+			DirectoryHelper.Rename($"{path}\\Librarian\\images", $"{path}\\Librarian\\Images");
+
+			DirectoryHelper.Rename($"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.cs", $"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\ModelAnimationGraphCustomSection\\modelanimationgraphsection.xaml", $"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.xaml");
+			DirectoryHelper.Rename($"{path}\\Themes\\generic.xaml", $"{path}\\Themes\\Generic.xaml");
+
+			DirectoryHelper.Rename($"{path}\\Properties\\Resources.cs", $"{path}\\Properties\\Resources.Designer.cs");
+			DirectoryHelper.Rename($"{path}\\Properties\\Settings.cs", $"{path}\\Properties\\Settings.Designer.cs");
+
+			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
 		public static void CleanupNormalPlugin(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Plugins", $"{path}");
 
+			DirectoryHelper.Rename($"{path}\\application", $"{path}\\Application");
+			DirectoryHelper.Rename($"{path}\\application\\images", $"{path}\\Application\\Images");
+
+			DirectoryHelper.Rename($"{path}\\toolcommand", $"{path}\\ToolCommand");
+			DirectoryHelper.Rename($"{path}\\toolcommand\\images", $"{path}\\ToolCommand\\Images");
+
+			DirectoryHelper.Rename($"{path}\\help", $"{path}\\Help");
+
+			DirectoryHelper.Rename($"{path}\\tagfilelist", $"{path}\\TagFileList");
+			DirectoryHelper.Rename($"{path}\\tagfilelist\\images", $"{path}\\TagFileList\\Images");
+			DirectoryHelper.Rename($"{path}\\tagfilelist\\themes", $"{path}\\TagFileList\\Themes");
+
+			DirectoryHelper.Rename($"{path}\\TagFileList\\Themes\\generic.xaml", $"{path}\\TagFileList\\Themes\\Generic.xaml");
+			DirectoryHelper.Rename($"{path}\\TagFileList\\Generic.cs", $"{path}\\TagFileList\\Themes\\Generic.xaml.cs");
+
+			Directory.CreateDirectory($"{path}\\Themes");
+			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\NormalPlugin", $"{path}\\Themes");
+
+			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
 		public static void CleanupTAEShared(string path)
 		{
-
+			DirectoryHelper.MoveFiles($"{path}\\TAE", $"{path}");
 		}
 
 		public static void CleanupTAESharedTags(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\TAE\\Shared\\Tags", $"{path}");
 
+			Directory.Delete($"{path}\\TAE", true);
 		}
 
 		public static void CleanupTAESharedTagsManagedBlam(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\TAE\\Shared\\Tags\\ManagedBlam", $"{path}");
 
+			Directory.Delete($"{path}\\TAE", true);
 		}
 
 		public static void CleanupTAESharedTagsService(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\TAE\\Shared\\Tags\\Service", $"{path}");
 
+			Directory.Delete($"{path}\\TAE", true);
 		}
 
 		public static void CleanupTAESharedTagsServiceClient(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\TAE\\Shared\\Tags\\ServiceClient", $"{path}");
 
+			Directory.Delete($"{path}\\TAE", true);
 		}
 
 		public static void CleanupTAESharedTagsServiceHost(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\TAE\\Shared\\Tags\\ServiceHost", $"{path}");
 
+			Directory.Delete($"{path}\\TAE", true);
 		}
 
 		public static void CleanupTagService(string path)
 		{
-
+			DirectoryHelper.MoveFiles($"{path}\\TagService", $"{path}");
+			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 		}
 
 		public static void CleanupTagWatcher(string path)
 		{
+			DirectoryHelper.MoveFiles($"{path}\\Corinth\\TagWatcher", $"{path}");
+			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 
+			Directory.Delete($"{path}\\Corinth", true);
 		}
 	}
 }
