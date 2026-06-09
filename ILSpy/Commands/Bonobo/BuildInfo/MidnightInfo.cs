@@ -251,6 +251,27 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.Rename($"{path}\\tagcustomsection", $"{path}\\TagCustomSection");
 
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BitmapImportSection.cs", $"{path}\\TagCustomSection\\BitmapImportSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\bitmapimportsection.xaml", $"{path}\\TagCustomSection\\BitmapImportSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BitmapSection.cs", $"{path}\\TagCustomSection\\BitmapSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\bitmapsection.xaml", $"{path}\\TagCustomSection\\BitmapSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BlendScreenSection.cs", $"{path}\\TagCustomSection\\BlendScreenSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\blendscreensection\\blendscreensection.xaml", $"{path}\\TagCustomSection\\BlendScreenSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\FormationSection.cs", $"{path}\\TagCustomSection\\FormationSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\formationsection.xaml", $"{path}\\TagCustomSection\\FormationSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\FrameEventsSection.cs", $"{path}\\TagCustomSection\\FrameEventsSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\frameeventssection.xaml", $"{path}\\TagCustomSection\\FrameEventsSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\SoundClassesSection.cs", $"{path}\\TagCustomSection\\SoundClassesSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\soundclassessection.xaml", $"{path}\\TagCustomSection\\SoundClassesSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\SourceFileListSection.cs", $"{path}\\TagCustomSection\\SourceFileListSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\sourcefilelistsection.xaml", $"{path}\\TagCustomSection\\SourceFileListSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\StringsSection.cs", $"{path}\\TagCustomSection\\StringsSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\stringssection.xaml", $"{path}\\TagCustomSection\\StringsSection.xaml");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\UsurpPreviewCustomSection.cs", $"{path}\\TagCustomSection\\UsurpPreviewCustomSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\usurppreviewcustomsection.xaml", $"{path}\\TagCustomSection\\UsurpPreviewCustomSection.xaml");
+
+			Directory.Delete($"{path}\\TagCustomSection\\blendscreensection", true);
+
 			DirectoryHelper.Rename($"{path}\\taggridview", $"{path}\\TagGridView");
 			DirectoryHelper.Rename($"{path}\\taggridview\\themes", $"{path}\\TagGridView\\Themes");
 
