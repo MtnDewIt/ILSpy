@@ -241,6 +241,46 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.Rename($"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.cs", $"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.xaml.cs");
 			DirectoryHelper.Rename($"{path}\\demo\\democustomsectionwithdelete\\demoscenariosection.xaml", $"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.xaml");
 
+			DirectoryHelper.Rename($"{path}\\rendermodel", $"{path}\\RenderModel");
+			DirectoryHelper.Rename($"{path}\\RenderModel\\RenderModelSection.cs", $"{path}\\RenderModel\\RenderModelSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\RenderModel\\rendermodelsection.xaml", $"{path}\\RenderModel\\RenderModelSection.xaml");
+
+			DirectoryHelper.Rename($"{path}\\tagannotations", $"{path}\\TagAnnotations");
+			DirectoryHelper.Rename($"{path}\\TagAnnotations\\AreaAnnotationViewItemPanel.cs", $"{path}\\TagAnnotations\\AreaAnnotationViewItemPanel.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagAnnotations\\areaannotationviewfield.xaml", $"{path}\\TagAnnotations\\AreaAnnotationViewItemPanel.xaml");
+
+			DirectoryHelper.Rename($"{path}\\tagcustomsection", $"{path}\\TagCustomSection");
+
+			DirectoryHelper.Rename($"{path}\\taggridview", $"{path}\\TagGridView");
+			DirectoryHelper.Rename($"{path}\\taggridview\\themes", $"{path}\\TagGridView\\Themes");
+
+			Directory.CreateDirectory($"{path}\\TagGridView\\Themes\\Resources");
+			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldCustomGridCellResources.xaml", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldCustomGridCellResources.xaml");
+			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldCustomGridCellResources.xaml.cs", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldCustomGridCellResources.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldGridCellResources.xaml", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldGridCellResources.xaml");
+			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldGridCellResources.xaml.cs", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldGridCellResources.xaml.cs");
+
+			DirectoryHelper.Rename($"{path}\\tagtemplateview", $"{path}\\TagTemplateView");
+
+			Directory.CreateDirectory($"{path}\\TagTemplateView\\Themes\\Resources");
+			DirectoryHelper.Rename($"{path}\\TagTemplateView\\Values\\TagValuePanelResources.xaml", $"{path}\\TagTemplateView\\Themes\\Resources\\TagValuePanelResources.xaml");
+			DirectoryHelper.Rename($"{path}\\TagTemplateView\\Values\\TagValuePanelResources.xaml.cs", $"{path}\\TagTemplateView\\Themes\\Resources\\TagValuePanelResources.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagTemplateView\\ParameterResources.xaml", $"{path}\\TagTemplateView\\Themes\\Resources\\ParameterResources.xaml");
+			DirectoryHelper.Rename($"{path}\\TagTemplateView\\ParameterResources.xaml.cs", $"{path}\\TagTemplateView\\Themes\\Resources\\ParameterResources.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagTemplateView\\shared\\colorswatchtagtemplatevalue.xaml", $"{path}\\TagTemplateView\\ColorSwatchTagTemplateValue.xaml");
+			DirectoryHelper.Rename($"{path}\\TagTemplateView\\ColorSwatchTagTemplateValue.cs", $"{path}\\TagTemplateView\\ColorSwatchTagTemplateValue.xaml.cs");
+
+			Directory.Delete($"{path}\\TagTemplateView\\shared", true);
+
+			DirectoryHelper.Rename($"{path}\\tagview", $"{path}\\TagView");
+			DirectoryHelper.Rename($"{path}\\tagview\\images", $"{path}\\TagView\\Images");
+
+			Directory.CreateDirectory($"{path}\\TagView\\Themes\\Resources");
+			DirectoryHelper.Rename($"{path}\\TagView\\Fields\\TagFieldBlockPanelMenuToggleResources.xaml", $"{path}\\TagView\\Themes\\Resources\\TagFieldBlockPanelMenuToggleResources.xaml");
+			DirectoryHelper.Rename($"{path}\\TagView\\Fields\\TagFieldBlockPanelMenuToggleResources.xaml.cs", $"{path}\\TagView\\Themes\\Resources\\TagFieldBlockPanelMenuToggleResources.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagView\\Fields\\TagFieldPanelResourceDictionary.xaml", $"{path}\\TagView\\Themes\\Resources\\TagFieldPanelResourceDictionary.xaml");
+			DirectoryHelper.Rename($"{path}\\TagView\\Fields\\TagFieldPanelResourceDictionary.xaml.cs", $"{path}\\TagView\\Themes\\Resources\\TagFieldPanelResourceDictionary.xaml.cs");
+
 			Directory.Delete($"{path}\\Bonobo", true);
 			Directory.Delete($"{path}\\demo", true);
 		}
@@ -249,6 +289,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 		{
 			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Application", $"{path}");
 			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
+
+			DirectoryHelper.Rename($"{path}\\App.cs", $"{path}\\App.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\Properties\\Resources.cs", $"{path}\\Properties\\Resources.Designer.cs");
+			DirectoryHelper.Rename($"{path}\\Properties\\Settings.cs", $"{path}\\Properties\\Settings.Designer.cs");
 
 			Directory.Delete($"{path}\\Bonobo", true);
 		}
