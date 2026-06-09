@@ -274,6 +274,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.Rename($"{path}\\taggridview", $"{path}\\TagGridView");
 			DirectoryHelper.Rename($"{path}\\taggridview\\themes", $"{path}\\TagGridView\\Themes");
+			DirectoryHelper.Rename($"{path}\\taggridview\\themes\\generic.xaml", $"{path}\\TagGridView\\Themes\\Generic.xaml");
 
 			Directory.CreateDirectory($"{path}\\TagGridView\\Themes\\Resources");
 			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldCustomGridCellResources.xaml", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldCustomGridCellResources.xaml");
