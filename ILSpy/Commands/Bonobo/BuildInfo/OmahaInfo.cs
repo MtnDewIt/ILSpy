@@ -246,6 +246,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.Rename($"{path}\\tagcustomsection", $"{path}\\TagCustomSection");
 			DirectoryHelper.Rename($"{path}\\tagcustomsection\\chudlayouteditor", $"{path}\\TagCustomSection\\ChudLayoutEditor");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\ChudLayoutEditor\\ChudLayoutEditorSection.cs", $"{path}\\TagCustomSection\\ChudLayoutEditor\\ChudLayoutEditorSection.xaml.cs");
+			DirectoryHelper.Rename($"{path}\\TagCustomSection\\ChudLayoutEditor\\chudlayouteditorsection.xaml", $"{path}\\TagCustomSection\\ChudLayoutEditor\\ChudLayoutEditorSection.xaml");
 
 			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BitmapImportSection.cs", $"{path}\\TagCustomSection\\BitmapImportSection.xaml.cs");
 			DirectoryHelper.Rename($"{path}\\TagCustomSection\\bitmapimportsection.xaml", $"{path}\\TagCustomSection\\BitmapImportSection.xaml");
