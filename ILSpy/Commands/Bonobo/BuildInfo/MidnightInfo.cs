@@ -312,7 +312,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Application", $"{path}");
 			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 
-			DirectoryHelper.Rename($"{path}\\App.cs", $"{path}\\App.xaml.cs");
 			DirectoryHelper.Rename($"{path}\\Properties\\Resources.cs", $"{path}\\Properties\\Resources.Designer.cs");
 			DirectoryHelper.Rename($"{path}\\Properties\\Settings.cs", $"{path}\\Properties\\Settings.Designer.cs");
 

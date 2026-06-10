@@ -22,11 +22,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 using ICSharpCode.Decompiler.CSharp.OutputVisitor;
 using ICSharpCode.Decompiler.CSharp.Syntax;
@@ -165,6 +168,9 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 			{
 				fileTable.AddRange(WriteMiscellaneousFilesInProject(module));
 			}
+
+			fileTable = PostProcessProject(file, fileTable, cancellationToken).ToList();
+
 			if (StrongNameKeyFile != null)
 			{
 				File.Copy(StrongNameKeyFile, Path.Combine(targetDirectory, Path.GetFileName(StrongNameKeyFile)), overwrite: true);
@@ -625,6 +631,322 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 				sb.Append(c);
 			}
 			return sb.ToString();
+		}
+		#endregion
+
+		#region PostProcessProject
+		/// <summary>
+		/// Called after all project files have been generated, allowing subclasses to
+		/// modify or add items before the project file is written.
+		/// </summary>
+		protected IEnumerable<ProjectItemInfo> PostProcessProject(MetadataFile module, List<ProjectItemInfo> files, CancellationToken cancellationToken)
+		{
+			// Only handle EXE assemblies (not DLLs) - matching DnSpyEx behavior
+			var peFile = module as PEFile;
+			if (peFile == null || peFile.Reader.PEHeaders.IsDll)
+				return files;
+
+			var metadata = module.Metadata;
+
+			// Collect the set of type handles that already have XAML files
+			var typesWithXaml = new HashSet<TypeDefinitionHandle>();
+			foreach (var file in files)
+			{
+				if (file.PartialTypes != null)
+				{
+					foreach (var pt in file.PartialTypes)
+						typesWithXaml.Add(pt.DeclaringTypeDefinitionHandle);
+				}
+			}
+
+			// If no XAML types at all in the project, nothing to do
+			if (typesWithXaml.Count == 0)
+				return files;
+
+			var result = new List<ProjectItemInfo>(files);
+
+			// Iterate types via the metadata to find WPF Application classes
+			foreach (var typeHandle in metadata.TypeDefinitions)
+			{
+				var typeDef = metadata.GetTypeDefinition(typeHandle);
+				if (typeDef.IsNested)
+					continue;
+
+				if (IsWpfApplication(metadata, typeDef))
+				{
+					if (!typesWithXaml.Contains(typeHandle))
+					{
+						CreateSyntheticAppXaml(peFile, metadata, typeHandle, typeDef, result);
+					}
+				}
+			}
+
+			return result;
+		}
+
+		private static bool IsWpfApplication(MetadataReader metadata, TypeDefinition typeDef)
+		{
+			var baseTypeHandle = typeDef.BaseType;
+
+			while (!baseTypeHandle.IsNil)
+			{
+				if (!TryGetTypeName(metadata, baseTypeHandle, out string ns, out string name))
+					return false;
+
+				if (ns == "System.Windows" && name == "Application")
+					return true;
+
+				// Walk up to the next base type
+				if (baseTypeHandle.Kind != HandleKind.TypeDefinition)
+					return false;
+
+				var baseTypeDef = metadata.GetTypeDefinition((TypeDefinitionHandle)baseTypeHandle);
+				baseTypeHandle = baseTypeDef.BaseType;
+			}
+
+			return false;
+		}
+
+		private static bool TryGetTypeName(MetadataReader metadata, EntityHandle handle, out string ns, out string name)
+		{
+			ns = string.Empty;
+			name = string.Empty;
+
+			if (handle.IsNil)
+				return false;
+
+			switch (handle.Kind)
+			{
+				case HandleKind.TypeDefinition:
+					var td = metadata.GetTypeDefinition((TypeDefinitionHandle)handle);
+					ns = td.Namespace.IsNil ? string.Empty : metadata.GetString(td.Namespace);
+					name = metadata.GetString(td.Name);
+					return true;
+				case HandleKind.TypeReference:
+					var tr = metadata.GetTypeReference((TypeReferenceHandle)handle);
+					ns = tr.Namespace.IsNil ? string.Empty : metadata.GetString(tr.Namespace);
+					name = metadata.GetString(tr.Name);
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		private void CreateSyntheticAppXaml(PEFile peFile, MetadataReader metadata, TypeDefinitionHandle typeHandle, TypeDefinition typeDef, List<ProjectItemInfo> files)
+		{
+			string typeName = metadata.GetString(typeDef.Name);
+			string typeNamespace = typeDef.Namespace.IsNil ? string.Empty : metadata.GetString(typeDef.Namespace);
+			string fullTypeName = string.IsNullOrEmpty(typeNamespace) ? typeName : typeNamespace + "." + typeName;
+
+			// Determine the directory path for this type based on existing Compile entries
+			string dirPath = "";
+			string originalCsFile = null;
+			int fileIndex = -1;
+
+			// Find the Compile entry for this type
+			for (int i = 0; i < files.Count; i++)
+			{
+				var f = files[i];
+				if (f.ItemType != "Compile")
+					continue;
+				string fileName = Path.GetFileNameWithoutExtension(f.FileName);
+				if (string.Equals(fileName, typeName, StringComparison.OrdinalIgnoreCase) &&
+					f.PartialTypes == null) // Types with PartialTypeInfo already have XAML
+				{
+					originalCsFile = f.FileName;
+					fileIndex = i;
+					dirPath = Path.GetDirectoryName(f.FileName);
+					break;
+				}
+			}
+
+			if (originalCsFile == null)
+				return;
+
+			// Determine the XAML file name: same directory, typeName.xaml
+			string xamlFileName = string.IsNullOrEmpty(dirPath)
+				? typeName + ".xaml"
+				: Path.Combine(dirPath, typeName + ".xaml");
+
+			// Determine the code-behind file name: same directory, typeName.xaml.cs
+			string codeBehindFileName = string.IsNullOrEmpty(dirPath)
+				? typeName + ".xaml.cs"
+				: Path.Combine(dirPath, typeName + ".xaml.cs");
+
+			// Rename the existing .cs file to .xaml.cs on disk
+			string oldFullPath = Path.Combine(TargetDirectory, originalCsFile);
+			string newFullPath = Path.Combine(TargetDirectory, codeBehindFileName);
+			if (File.Exists(oldFullPath))
+			{
+				File.Move(oldFullPath, newFullPath);
+			}
+
+			// Replace the Compile entry: change file name and add DependentUpon
+			var newCompileEntry = new ProjectItemInfo("Compile", codeBehindFileName)
+				.With("DependentUpon", xamlFileName);
+			files[fileIndex] = newCompileEntry;
+
+			// Check if this is the startup class
+			bool isStartupClass = IsStartupClass(peFile, typeHandle, metadata);
+
+			// Write the synthetic App.xaml
+			string xamlFullPath = Path.Combine(TargetDirectory, xamlFileName);
+			string directory = Path.GetDirectoryName(xamlFullPath);
+			if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+				Directory.CreateDirectory(directory);
+
+			WriteSyntheticAppXamlFile(peFile, metadata, typeDef, fullTypeName, xamlFullPath, isStartupClass);
+
+			// Add the XAML file as either ApplicationDefinition or Page
+			var xamlItemType = isStartupClass ? "ApplicationDefinition" : "Page";
+			var xamlEntry = new ProjectItemInfo(xamlItemType, xamlFileName)
+				.With("Generator", "MSBuild:Compile")
+				.With("SubType", "Designer");
+			files.Add(xamlEntry);
+		}
+
+		private static bool IsStartupClass(PEFile peFile, TypeDefinitionHandle typeHandle, MetadataReader metadata)
+		{
+			var headers = peFile.Reader.PEHeaders;
+			if (headers.IsDll || headers.CorHeader == null)
+				return false;
+
+			int entryPointToken = headers.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+			if (entryPointToken != 0)
+			{
+				var entryPointHandle = MetadataTokens.EntityHandle(entryPointToken);
+				if (entryPointHandle.Kind == HandleKind.MethodDefinition)
+				{
+					var methodDef = metadata.GetMethodDefinition((MethodDefinitionHandle)entryPointHandle);
+					var declaringType = methodDef.GetDeclaringType();
+					return declaringType == typeHandle;
+				}
+			}
+			return false;
+		}
+
+		private static void WriteSyntheticAppXamlFile(PEFile peFile, MetadataReader metadata, TypeDefinition typeDef, string fullTypeName, string filePath, bool isStartupClass)
+		{
+			var settings = new XmlWriterSettings {
+				Encoding = Encoding.UTF8,
+				Indent = true,
+				OmitXmlDeclaration = true,
+			};
+
+			using (var writer = XmlWriter.Create(filePath, settings))
+			{
+				writer.WriteStartDocument();
+				writer.WriteStartElement("Application", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
+				writer.WriteAttributeString("x", "Class", "http://schemas.microsoft.com/winfx/2006/xaml", fullTypeName);
+
+				// Add ClassModifier for non-public types
+				if (IsNonPublic(typeDef.Attributes))
+				{
+					writer.WriteAttributeString("x", "ClassModifier", "http://schemas.microsoft.com/winfx/2006/xaml", "internal");
+				}
+
+				// Extract StartupUri from InitializeComponent IL if available
+				if (isStartupClass)
+				{
+					var startupUri = TryGetStartupUri(peFile, metadata, typeDef);
+					if (startupUri != null)
+					{
+						writer.WriteAttributeString("StartupUri", startupUri);
+					}
+				}
+
+				// Write empty Application.Resources element
+				writer.WriteStartElement("Application.Resources");
+				writer.WriteString("\r\n");
+				writer.WriteEndElement();
+
+				writer.WriteEndElement();
+				writer.WriteEndDocument();
+			}
+		}
+
+		private static bool IsNonPublic(TypeAttributes attributes)
+		{
+			var visibility = attributes & TypeAttributes.VisibilityMask;
+			return visibility != TypeAttributes.Public && visibility != TypeAttributes.NestedPublic;
+		}
+
+		/// <summary>
+		/// Scans the InitializeComponent method IL for a ldstr with a .xaml extension,
+		/// which serves as the StartupUri value.
+		/// </summary>
+		private static unsafe string TryGetStartupUri(PEFile peFile, MetadataReader metadata, TypeDefinition typeDef)
+		{
+			foreach (var methodHandle in typeDef.GetMethods())
+			{
+				var method = metadata.GetMethodDefinition(methodHandle);
+				if (metadata.GetString(method.Name) != "InitializeComponent")
+					continue;
+
+				if (method.RelativeVirtualAddress == 0)
+					continue;
+
+				try
+				{
+					var methodBody = peFile.Reader.GetMethodBody(method.RelativeVirtualAddress);
+					if (methodBody == null)
+						continue;
+
+					var ilBytes = methodBody.GetILBytes();
+					if (ilBytes == null || ilBytes.Length == 0)
+						continue;
+
+					fixed (byte* p = ilBytes.ToArray())
+					{
+						var reader = new BlobReader(p, ilBytes.Length);
+						string lastString = null;
+						while (reader.RemainingBytes > 0)
+						{
+							int opCode = reader.ReadByte();
+							if (opCode == 0x72) // ldstr
+							{
+								try
+								{
+									lastString = reader.ReadSerializedString();
+								}
+								catch
+								{
+									lastString = null;
+								}
+							}
+							else
+							{
+								SkipOperand(ref reader, opCode);
+							}
+						}
+
+						if (lastString != null && lastString.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+							return lastString;
+					}
+				}
+				catch
+				{
+					// Ignore errors reading IL
+				}
+				break; // Only check the first InitializeComponent
+			}
+			return null;
+		}
+
+		private static void SkipOperand(ref BlobReader reader, int opCode)
+		{
+			switch (opCode)
+			{
+				case 0x28: // call
+				case 0x6F: // callvirt
+				case 0x73: // newobj
+					reader.ReadInt32(); // MethodDef/Ref token
+					break;
+				case 0xFE0E: // ldarg.s (actually 2-byte opcode, but simplified)
+					reader.ReadByte();
+					break;
+					// Add more operand skipping as needed
+			}
 		}
 		#endregion
 
