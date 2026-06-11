@@ -503,6 +503,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 		public static void CleanupTAEShared(string path)
 		{
 			DirectoryHelper.MoveFiles($"{path}\\TAE", $"{path}");
+
+			DirectoryHelper.MoveFiles($"{path}\\Shared\\Properties\\Resources.cs", $"{path}\\Properties\\Resources.Designer.cs");
+			DirectoryHelper.MoveFiles($"{path}\\TAE.Shared.Properties.Resources.resx", $"{path}\\Properties\\Resources.resx");
+
+			Directory.Delete($"{path}\\Shared\\Properties", true);
+			File.Delete($"{path}\\TAE.Shared.Resources.Resources.resx");
 		}
 
 		public static void CleanupTAESharedTags(string path)
