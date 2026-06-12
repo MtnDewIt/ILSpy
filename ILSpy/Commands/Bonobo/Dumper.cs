@@ -110,6 +110,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			options.FullDecompilation = true;
 			options.SaveAsProjectDirectory = outputPath;
 			options.DecompilerSettings.FileScopedNamespaces = false;
+			options.DecompilerSettings.EmitConditionalDefines = true;
 
 			string projectFileName = Path.Combine(outputPath, loadedAssembly.ShortName + LanguageService.Language.ProjectFileExtension);
 

@@ -2279,6 +2279,24 @@ namespace ICSharpCode.Decompiler
 			}
 		}
 
+		bool emitConditionalDefines = true;
+
+		/// <summary>
+		/// Gets/sets whether directives for conditional attributes should be emitted in the generated code.
+		/// </summary>
+		[Category("DecompilerSettings.ProjectExport")]
+		[Description("Whether to emit #define directives for Conditional attributes")]
+		public bool EmitConditionalDefines {
+			get { return emitConditionalDefines; }
+			set {
+				if (emitConditionalDefines != value)
+				{
+					emitConditionalDefines = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		bool aggressiveScalarReplacementOfAggregates = false;
 
 		[Category("DecompilerSettings.Other")]

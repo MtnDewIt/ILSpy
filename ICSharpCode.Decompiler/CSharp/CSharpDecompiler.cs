@@ -2086,7 +2086,9 @@ namespace ICSharpCode.Decompiler.CSharp
 				// Generate C# AST only if bodies should be displayed.
 				if (localSettings.DecompileMemberBodies)
 				{
-					AddDefinesForConditionalAttributes(function, decompileRun);
+					if (!localSettings.EmitConditionalDefines)
+						AddDefinesForConditionalAttributes(function, decompileRun);
+
 					var statementBuilder = new StatementBuilder(
 						typeSystem,
 						decompilationContext,
