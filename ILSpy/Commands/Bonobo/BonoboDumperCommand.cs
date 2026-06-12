@@ -185,6 +185,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			DirectoryHelper.MoveFiles($"{outputPath}\\Bonobo\\Images\\bonobo.ico", $"{outputPath}\\Assets\\Bonobo\\Bonobo.ico");
 			DirectoryHelper.MoveFiles($"{outputPath}\\Bonobo\\splash.png", $"{outputPath}\\Assets\\Bonobo\\BonoboSplash.png");
 
+			Directory.Delete($"{outputPath}\\Bonobo\\Images", true);
 			Directory.Delete(dumpPath, true);
 		}
 

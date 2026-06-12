@@ -317,7 +317,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			File.Delete($"{path}\\Properties\\Resources.cs");
 			File.Delete($"{path}\\Properties\\Settings.cs");
 
-			Directory.Delete($"{path}\\images", true);
 			Directory.Delete($"{path}\\Bonobo", true);
 		}
 
