@@ -4,6 +4,7 @@ using System.Composition;
 using System.IO;
 
 using ICSharpCode.ILSpy.AssemblyTree;
+using ICSharpCode.ILSpy.Commands.Bonobo.Extensions;
 using ICSharpCode.ILSpy.Docking;
 using ICSharpCode.ILSpy.Properties;
 
@@ -93,7 +94,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				dumper.AssemblyInfoGenerator.BonoboInit(project);
 				dumper.AssemblyInfoGenerator.GenerateBonoboAssemblyInfo(project);
 
-				// Filter XAML Files (They never get put in the right directory)
 				FilterBonoboFiles(dumpPath);
 
 				dumper.Context?.BuildInfo?.CleanupProjectDump(project, dumper.Context?.BonoboProjectDumpPath);
@@ -116,6 +116,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 				File.Copy(source, destination, true);
 			}
+
+			MigrateBonoboDump();
 
 			dumper.GenerateMainBonoboSolution();
 			dumper.GenerateBonoboBuildProps();
@@ -143,6 +145,45 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			dumper.GenerateMainManagedSolution();
 
 			dumper.Clear();
+		}
+
+		public void MigrateBonoboDump()
+		{
+			string[] allowedExtensions =
+			[
+				".cs",
+				".xaml",
+				".resx",
+				".ps",
+				".png",
+				".jpg",
+				".ico",
+				".bmp",
+				".config",
+			];
+
+			string[] excludedFiles = 
+			[
+				"AssemblyInfo.cs",
+			];
+
+			string dumpPath = $"{dumper?.Context?.BonoboProjectDumpPath}";
+			string outputPath = $"{dumper?.Context?.BonoboProjectOutputPath}";
+
+			DirectoryHelper.CopyDirectory(dumpPath, outputPath, file => 
+			{
+				bool matchExtension = Array.Exists(allowedExtensions, extension =>
+					extension.Equals(file.Extension, StringComparison.OrdinalIgnoreCase));
+
+				bool matchName = Array.Exists(excludedFiles, name =>
+					!name.Equals(file.Name, StringComparison.OrdinalIgnoreCase));
+
+				return matchExtension && matchName;
+			});
+
+			Directory.CreateDirectory($"{outputPath}\\Assets\\Bonobo");
+			DirectoryHelper.MoveFiles($"{outputPath}\\Bonobo\\Images\\bonobo.ico", $"{outputPath}\\Assets\\Bonobo\\Bonobo.ico");
+			DirectoryHelper.MoveFiles($"{outputPath}\\Bonobo\\splash.png", $"{outputPath}\\Assets\\Bonobo\\BonoboSplash.png");
 		}
 
 		public static void FilterBonoboFiles(string projectPath) 

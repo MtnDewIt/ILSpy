@@ -303,6 +303,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.Rename($"{path}\\TagView\\Fields\\TagFieldPanelResourceDictionary.xaml", $"{path}\\TagView\\Themes\\Resources\\TagFieldPanelResourceDictionary.xaml");
 			DirectoryHelper.Rename($"{path}\\TagView\\Fields\\TagFieldPanelResourceDictionary.xaml.cs", $"{path}\\TagView\\Themes\\Resources\\TagFieldPanelResourceDictionary.xaml.cs");
 
+			File.Delete($"{path}\\Properties\\Resources.cs");
+
 			Directory.Delete($"{path}\\Bonobo", true);
 			Directory.Delete($"{path}\\demo", true);
 		}
@@ -312,8 +314,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Application", $"{path}");
 			DirectoryHelper.Rename($"{path}\\app.config", $"{path}\\App.config");
 
-			DirectoryHelper.Rename($"{path}\\Properties\\Resources.cs", $"{path}\\Properties\\Resources.Designer.cs");
-			DirectoryHelper.Rename($"{path}\\Properties\\Settings.cs", $"{path}\\Properties\\Settings.Designer.cs");
+			File.Delete($"{path}\\Properties\\Resources.cs");
+			File.Delete($"{path}\\Properties\\Settings.cs");
 
 			Directory.Delete($"{path}\\Bonobo", true);
 		}
@@ -469,8 +471,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.Rename($"{path}\\ModelAnimationGraphCustomSection\\modelanimationgraphsection.xaml", $"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.xaml");
 			DirectoryHelper.Rename($"{path}\\Themes\\generic.xaml", $"{path}\\Themes\\Generic.xaml");
 
-			DirectoryHelper.Rename($"{path}\\Properties\\Resources.cs", $"{path}\\Properties\\Resources.Designer.cs");
-			DirectoryHelper.Rename($"{path}\\Properties\\Settings.cs", $"{path}\\Properties\\Settings.Designer.cs");
+			File.Delete($"{path}\\Properties\\Resources.cs");
+			File.Delete($"{path}\\Properties\\Settings.cs");
 
 			Directory.Delete($"{path}\\Bonobo", true);
 		}

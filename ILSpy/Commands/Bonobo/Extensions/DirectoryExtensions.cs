@@ -5,7 +5,38 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.Extensions
 {
 	public static class DirectoryHelper
 	{
-		public static void MoveFiles(this string sourceDirName, string destDirName)
+		public static void CopyDirectory(string sourceDir, string destinationDir, Func<FileInfo, bool> fileFilter = null) 
+		{
+			var directoryInfo = new DirectoryInfo(sourceDir);
+
+			if (!directoryInfo.Exists)
+			{
+				throw new DirectoryNotFoundException($"Source directory not found: {directoryInfo.FullName}");
+			}
+
+			DirectoryInfo[] dirs = directoryInfo.GetDirectories();
+
+			Directory.CreateDirectory(destinationDir);
+
+			foreach (FileInfo file in directoryInfo.GetFiles())
+			{
+				if (fileFilter == null || fileFilter(file))
+				{
+					string targetFilePath = Path.Combine(destinationDir, file.Name);
+
+					file.CopyTo(targetFilePath, true);
+				}
+			}
+
+			foreach (DirectoryInfo subDir in dirs)
+			{
+				string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+
+				CopyDirectory(subDir.FullName, newDestinationDir, fileFilter);
+			}
+		}
+
+		public static void MoveFiles(string sourceDirName, string destDirName)
 		{
 			if (Directory.Exists(destDirName))
 			{

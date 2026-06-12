@@ -84,6 +84,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				return false;
 			}
 
+			platform = Context.Platform.ToString();
+
 			AssemblyInfoGenerator = new AssemblyInfoGenerator(Context);
 
 			return true;
