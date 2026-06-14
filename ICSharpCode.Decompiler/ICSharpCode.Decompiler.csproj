@@ -3,6 +3,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Carry every distribution RID in the lock file so a RID-specific `dotnet publish -r <rid>` of a
+         consuming app (ILSpy) restores in locked mode (RestoreLockedMode below) on any host OS, with no
+         per-publish restore escape hatch. Must match ILSpy.csproj's RuntimeIdentifiers. -->
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;osx-arm64</RuntimeIdentifiers>
 
     <PackageId>ICSharpCode.Decompiler</PackageId>
     <PackageVersion>8.0.0.0-noversion</PackageVersion>
@@ -49,7 +53,6 @@
   
   <!-- https://devblogs.microsoft.com/nuget/enable-repeatable-package-restores-using-a-lock-file/ -->
   <PropertyGroup>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	<RestoreLockedMode>true</RestoreLockedMode>
   </PropertyGroup>
 
@@ -89,7 +92,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.300">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.301">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
@@ -496,6 +499,7 @@
     <Compile Include="Util\KeyComparer.cs" />
     <Compile Include="Util\LongDict.cs" />
     <Compile Include="Util\ResourcesFile.cs" />
+    <Compile Include="Util\Sha1ForNonSecretPurposes.cs" />
     <Compile Include="Util\ResXResourceWriter.cs" />
     <Compile Include="Util\UnicodeNewline.cs" />
     <Compile Include="FlowAnalysis\ControlFlowNode.cs" />

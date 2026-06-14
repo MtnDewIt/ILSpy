@@ -548,7 +548,25 @@ namespace ICSharpCode.ILSpy.Properties {
                 return ResourceManager.GetString("Close", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Close all but this.
+        /// </summary>
+        public static string CloseAllButThisTab {
+            get {
+                return ResourceManager.GetString("CloseAllButThisTab", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Close all.
+        /// </summary>
+        public static string CloseAllTabs {
+            get {
+                return ResourceManager.GetString("CloseAllTabs", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Collapse all tree nodes.
         /// </summary>
@@ -1432,7 +1450,16 @@ namespace ICSharpCode.ILSpy.Properties {
                 return ResourceManager.GetString("DecompilerSettings.SortCustomAttributes", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sort switch sections by case label value.
+        /// </summary>
+        public static string DecompilerSettings_SortSwitchSections {
+            get {
+                return ResourceManager.GetString("DecompilerSettings.SortSwitchSections", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Detect switch on integer even if IL code does not use a jump table.
         /// </summary>
@@ -1858,15 +1885,6 @@ namespace ICSharpCode.ILSpy.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable smooth scrolling.
-        /// </summary>
-        public static string EnableSmoothScrolling {
-            get {
-                return ResourceManager.GetString("EnableSmoothScrolling", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enable word wrap.
         /// </summary>
         public static string EnableWordWrap {
@@ -1965,6 +1983,15 @@ namespace ICSharpCode.ILSpy.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Export Project/Solution....
+        /// </summary>
+        public static string ExportProjectSolution {
+            get {
+                return ResourceManager.GetString("ExportProjectSolution", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Generate portable PDB.
         /// </summary>
@@ -2246,6 +2273,141 @@ namespace ICSharpCode.ILSpy.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Author(s):.
+        /// </summary>
+        public static string NuGetFeedAuthors {
+            get {
+                return ResourceManager.GetString("NuGetFeedAuthors", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string NuGetFeedDescription {
+            get {
+                return ResourceManager.GetString("NuGetFeedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading package....
+        /// </summary>
+        public static string NuGetFeedDownloading {
+            get {
+                return ResourceManager.GetString("NuGetFeedDownloading", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Downloads:.
+        /// </summary>
+        public static string NuGetFeedDownloads {
+            get {
+                return ResourceManager.GetString("NuGetFeedDownloads", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to License:.
+        /// </summary>
+        public static string NuGetFeedLicense {
+            get {
+                return ResourceManager.GetString("NuGetFeedLicense", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load more.
+        /// </summary>
+        public static string NuGetFeedLoadMore {
+            get {
+                return ResourceManager.GetString("NuGetFeedLoadMore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to _Package source:.
+        /// </summary>
+        public static string NuGetFeedPackageSource {
+            get {
+                return ResourceManager.GetString("NuGetFeedPackageSource", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Project URL:.
+        /// </summary>
+        public static string NuGetFeedProjectUrl {
+            get {
+                return ResourceManager.GetString("NuGetFeedProjectUrl", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Date published:.
+        /// </summary>
+        public static string NuGetFeedPublished {
+            get {
+                return ResourceManager.GetString("NuGetFeedPublished", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh.
+        /// </summary>
+        public static string NuGetFeedRefresh {
+            get {
+                return ResourceManager.GetString("NuGetFeedRefresh", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search packages.
+        /// </summary>
+        public static string NuGetFeedSearchWatermark {
+            get {
+                return ResourceManager.GetString("NuGetFeedSearchWatermark", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select Package.
+        /// </summary>
+        public static string NuGetFeedSelectPackage {
+            get {
+                return ResourceManager.GetString("NuGetFeedSelectPackage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show pre-release packages.
+        /// </summary>
+        public static string NuGetFeedShowPrerelease {
+            get {
+                return ResourceManager.GetString("NuGetFeedShowPrerelease", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Tags:.
+        /// </summary>
+        public static string NuGetFeedTags {
+            get {
+                return ResourceManager.GetString("NuGetFeedTags", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to _Version:.
+        /// </summary>
+        public static string NuGetFeedVersion {
+            get {
+                return ResourceManager.GetString("NuGetFeedVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Nuget Package Browser.
         /// </summary>
         public static string NugetPackageBrowser {
@@ -2296,6 +2458,15 @@ namespace ICSharpCode.ILSpy.Properties {
         public static string OpenFrom_GAC {
             get {
                 return ResourceManager.GetString("OpenFrom_GAC", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open from _NuGet feed....
+        /// </summary>
+        public static string OpenFrom_NuGetFeed {
+            get {
+                return ResourceManager.GetString("OpenFrom_NuGetFeed", resourceCulture);
             }
         }
         
@@ -3186,7 +3357,7 @@ namespace ICSharpCode.ILSpy.Properties {
                 return ResourceManager.GetString("Window_CloseAllDocuments", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to _Reset layout.
         /// </summary>

@@ -273,7 +273,7 @@ namespace ICSharpCode.Decompiler.Tests
 			await Run();
 		}
 
-		[Test]
+		[Test, Platform("Win")] // UseLegacyAssembler requires the .NET Framework ilasm
 		public async Task Unsafe()
 		{
 			await Run(assemblerOptions: AssemblerOptions.Library | AssemblerOptions.UseLegacyAssembler);
@@ -337,6 +337,12 @@ namespace ICSharpCode.Decompiler.Tests
 			// uses Microsoft.Net.Compilers.Toolset 5.0.0-2.25451.107
 			// see ExtensionEncodingV2.il for details
 			await Run();
+		}
+
+		[Test]
+		public async Task SortSwitchSections()
+		{
+			await Run(settings: new DecompilerSettings { SortSwitchSections = true, FileScopedNamespaces = false });
 		}
 
 		async Task Run([CallerMemberName] string testName = null, DecompilerSettings settings = null,
