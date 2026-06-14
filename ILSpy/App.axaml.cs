@@ -42,7 +42,7 @@ namespace ICSharpCode.ILSpy
 		// directory the running runtime lives in (~150 assemblies). Headless tests flip this
 		// off so each test boots with a minimal default instead of re-seeding the whole
 		// framework per test (which is ~10x slower); see TestApp.
-		public static bool SeedFullFrameworkDefaultList { get; set; } = true;
+		public static bool SeedFullFrameworkDefaultList { get; set; } = false;
 
 		public override void Initialize()
 		{
