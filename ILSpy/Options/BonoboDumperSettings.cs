@@ -1,14 +1,14 @@
 using System;
 using System.Xml.Linq;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+
 using ICSharpCode.ILSpy.Commands.Bonobo;
 using ICSharpCode.ILSpyX.Settings;
 
-using TomsToolbox.Wpf;
-
 namespace ICSharpCode.ILSpy.Options
 {
-	public class BonoboDumperSettings : ObservableObjectBase, ISettingsSection
+	public class BonoboDumperSettings : ObservableObject, ISettingsSection
 	{
 		PlatformType platform = PlatformType.Invalid;
 		string outputPath = string.Empty;
@@ -29,12 +29,12 @@ namespace ICSharpCode.ILSpy.Options
 		{
 			Platform = PlatformType.Invalid;
 
-			if (Enum.TryParse((string)e.Attribute(nameof(Platform)), out PlatformType platform))
+			if (Enum.TryParse(e.Attribute(nameof(Platform))?.Value, out PlatformType platform))
 			{
 				Platform = platform;
 			}
 
-			OutputPath = (string)e.Attribute(nameof(OutputPath)) ?? string.Empty;
+			OutputPath = e.Attribute(nameof(OutputPath))?.Value ?? string.Empty;
 		}
 
 		public XElement SaveToXml()

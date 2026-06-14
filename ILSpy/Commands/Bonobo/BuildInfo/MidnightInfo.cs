@@ -112,10 +112,15 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
         public string[] GetRelativePaths() => DOTNET_RELATIVE_PATHS;
         public string[] GetXMLRelativePaths() => PROJECT_XML_RELATIVE_PATHS;
 		public string[] GetExternalRelativePaths() => PROJECT_EXTERNAL_DEPENDENCIES;
-		public string GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
+		public string? GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
 
-		public string FilterRelativePath(string path)
+		public string FilterRelativePath(string? path)
 		{
+			if (string.IsNullOrEmpty(path))
+			{
+				return string.Empty;
+			}
+
 			if (path.Contains("Bonobo") && !path.Contains("Interfaces") && !path.Contains("PluginSystem"))
 			{
 				return path.Replace("Bonobo", "Foundation");
@@ -124,7 +129,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			return path;
 		}
 
-		public void CleanupProjectDump(string project, string outputPath)
+		public void CleanupProjectDump(string? project, string? outputPath)
 		{
 			string path = $"{outputPath}\\{project}";
 

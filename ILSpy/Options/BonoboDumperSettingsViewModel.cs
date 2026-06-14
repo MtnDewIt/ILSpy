@@ -1,59 +1,46 @@
 using System;
 using System.Composition;
 using System.Linq;
-using System.Windows.Input;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+using ICSharpCode.ILSpy.Commands;
 using ICSharpCode.ILSpy.Commands.Bonobo;
-
-using Microsoft.Win32;
-
-using TomsToolbox.Wpf;
 
 namespace ICSharpCode.ILSpy.Options
 {
 	[ExportOptionPage(Order = 50)]
 	[NonShared]
-	public class BonoboDumperSettingsViewModel : ObservableObjectBase, IOptionPage
+	public partial class BonoboDumperSettingsViewModel : ObservableObject, IOptionPage
 	{
-		private BonoboDumperSettings settings;
-		public BonoboDumperSettings Settings 
-		{
-			get => settings;
-			set => SetProperty(ref settings, value);
-		}
+		public string Title => Properties.Resources.Bonobo_Dumper;
 
-		public ICommand OutputCommand => new Commands.DelegateCommand(Output);
-		private void Output()
-		{
-			var dlg = new OpenFolderDialog() 
-			{
-				Title = "Select Dump Output Path",
-			};
-
-			if (!string.IsNullOrEmpty(settings.OutputPath))
-			{
-				dlg.InitialDirectory = settings.OutputPath;
-			}
-
-			if (dlg.ShowDialog() == true)
-			{
-				settings.OutputPath = dlg.FolderName;
-			}
-		}
+		[ObservableProperty]
+		BonoboDumperSettings settings = null!;
 
 		public PlatformType[] Platforms => [.. Enum.GetValues<PlatformType>().Where(x => x != PlatformType.Invalid)];
 
-		public string Title => Properties.Resources.Bonobo_Dumper;
-
-		public void Load(SettingsSnapshot settings)
+		public void Load(SettingsService service)
 		{
-			Settings = settings.GetSettings<BonoboDumperSettings>();
+			Settings = service.BonoboSettings;
 		}
 
 		public void LoadDefaults()
 		{
 			Settings.LoadFromXml(new XElement("dummy"));
+		}
+
+		[RelayCommand]
+		async Task OutputAsync()
+		{
+			var folder = await FilePickers.PickFolderAsync("Select Output Folder");
+			if (folder != null)
+			{
+				Settings.OutputPath = folder;
+			}
 		}
 	}
 }

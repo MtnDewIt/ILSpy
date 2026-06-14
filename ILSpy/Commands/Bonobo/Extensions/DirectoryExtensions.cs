@@ -5,7 +5,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.Extensions
 {
 	public static class DirectoryHelper
 	{
-		public static void CopyDirectory(string sourceDir, string destinationDir, Func<FileInfo, bool> fileFilter = null) 
+		public static void CopyDirectory(string sourceDir, string destinationDir, Func<FileInfo, bool>? fileFilter = null) 
 		{
 			var directoryInfo = new DirectoryInfo(sourceDir);
 

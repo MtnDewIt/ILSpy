@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ICSharpCode.ILSpy.Options"
+             xmlns:res="using:ICSharpCode.ILSpy.Properties"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="300"
+             x:Class="ICSharpCode.ILSpy.Options.Panels.BonoboDumperSettingsPanel"
+             x:DataType="vm:BonoboDumperSettingsViewModel">
+	<StackPanel Orientation="Vertical">
+		<StackPanel Margin="10">
+			<DockPanel Margin="0,2,0,2">
+				<TextBlock Text="Platform" Width="100" VerticalAlignment="Center" Margin="0,0,5,0"/>
+				<ComboBox ItemsSource="{Binding Platforms}" VerticalContentAlignment="Center" SelectedItem="{Binding Settings.Platform}" />
+			</DockPanel>
+			<DockPanel Margin="0,2,0,2">
+				<TextBlock Text="Output Path" Width="100" VerticalAlignment="Center" Margin="0,0,5,0"/>
+				<Button DockPanel.Dock="Right" Content="..." Width="30" Margin="5,0,0,0" Command="{Binding OutputCommand}"/>
+				<TextBox Text="{Binding Settings.OutputPath}" VerticalAlignment="Center" />
+			</DockPanel>
+		</StackPanel>
+	</StackPanel>
+</UserControl>

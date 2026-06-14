@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 
 using Microsoft.Win32;
 
@@ -31,50 +31,58 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static Dictionary<BuildType, string> FindEKPaths()
 		{
-			using (RegistryKey muiCacheKeys = Registry.CurrentUser.OpenSubKey(muiCache, false))
+			if (OperatingSystem.IsWindows())
 			{
-				List<string> filePaths = [.. muiCacheKeys.GetValueNames()
-					.Where(path => baseTargets.Any(target => path.Contains(target, StringComparison.OrdinalIgnoreCase) || tagTestTargets.Any(target => path.Contains(target.Key, StringComparison.OrdinalIgnoreCase))))
-					.Select(path => path.Replace(".FriendlyAppName", string.Empty))
-					.Select(path => path.Replace(".ApplicationCompany", string.Empty))
-					.Distinct(StringComparer.OrdinalIgnoreCase)];
-
-				HashSet<string> targetFiles = baseTargets
-					.Concat(tagTestTargets.Keys)
-					.ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-				Dictionary<BuildType, string> results = [];
-
-				foreach (string filePath in filePaths)
+				using (RegistryKey? muiCacheKeys = Registry.CurrentUser.OpenSubKey(muiCache, false))
 				{
-					if (string.IsNullOrWhiteSpace(filePath))
+					if (muiCacheKeys != null)
 					{
-						continue;
-					}
+						List<string> filePaths = [.. muiCacheKeys.GetValueNames()
+							.Where(path => baseTargets.Any(target => path.Contains(target, StringComparison.OrdinalIgnoreCase) || tagTestTargets.Any(target => path.Contains(target.Key, StringComparison.OrdinalIgnoreCase))))
+							.Select(path => path.Replace(".FriendlyAppName", string.Empty))
+							.Select(path => path.Replace(".ApplicationCompany", string.Empty))
+							.Distinct(StringComparer.OrdinalIgnoreCase)];
 
-					string fileName = Path.GetFileName(filePath);
+						HashSet<string> targetFiles = baseTargets
+							.Concat(tagTestTargets.Keys)
+							.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-					if (targetFiles.Contains(fileName))
-					{
-						string path = Path.GetDirectoryName(filePath);
+						Dictionary<BuildType, string> results = [];
 
-						// Dumb fix until we can parse individual files.
-						if (path != null && !path.Contains("pooka", StringComparison.OrdinalIgnoreCase))
+						foreach (string filePath in filePaths)
 						{
-							BuildType buildType = GetBuildType(path);
-
-							if ((baseTargets.All(x => File.Exists(Path.Combine(path, x))) || 
-								tagTestTargets.Any(x => File.Exists(Path.Combine(path, x.Key)))) &&
-								!results.ContainsKey(buildType))
+							if (string.IsNullOrWhiteSpace(filePath))
 							{
-								results.Add(buildType, path);
+								continue;
+							}
+
+							string fileName = Path.GetFileName(filePath);
+
+							if (targetFiles.Contains(fileName))
+							{
+								string? path = Path.GetDirectoryName(filePath);
+
+								// Dumb fix until we can parse individual files.
+								if (path != null && !path.Contains("pooka", StringComparison.OrdinalIgnoreCase))
+								{
+									BuildType buildType = GetBuildType(path);
+
+									if ((baseTargets.All(x => File.Exists(Path.Combine(path, x))) ||
+										tagTestTargets.Any(x => File.Exists(Path.Combine(path, x.Key)))) &&
+										!results.ContainsKey(buildType))
+									{
+										results.Add(buildType, path);
+									}
+								}
 							}
 						}
+
+						return results;
 					}
 				}
-
-				return results;
 			}
+
+			return [];
 		}
 
 		private static BuildType GetBuildType(string path) 

@@ -4,14 +4,14 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 	{
 		public static readonly string MANAGED_RELATIVE_PATH = $"bin\\ManagedBlam.dll";
 
-		public string[] GetProjects() => null;
-		public string[] GetRelativePaths() => null;
-		public string[] GetXMLRelativePaths() => null;
-		public string[] GetExternalRelativePaths() => null;
-		public string GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
-		public string FilterRelativePath(string path) => null;
+		public string[] GetProjects() => [];
+		public string[] GetRelativePaths() => [];
+		public string[] GetXMLRelativePaths() => [];
+		public string[] GetExternalRelativePaths() => [];
+		public string? GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
+		public string? FilterRelativePath(string? path) => null;
 
-		public void CleanupProjectDump(string project, string outputPath)
+		public void CleanupProjectDump(string? project, string? outputPath)
 		{
 			return;
 		}

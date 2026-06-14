@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using TomsToolbox.Essentials;
-
 namespace ICSharpCode.ILSpy.Commands.Bonobo
 {
 	public class AssemblyInfoGenerator
@@ -23,7 +21,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public static uint BuildVersion = 0;
 		public static uint PrivateVersion = 0;
 
-		public static string ProjectName;
+		public static string? ProjectName;
 
 		public DumperContext Context;
 
@@ -32,7 +30,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			Context = context;
 		}
 
-		public void BonoboInit(string project)
+		public void BonoboInit(string? project)
 		{
 			ProjectName = project;
 
@@ -70,10 +68,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				x.StartsWith("[assembly: AssemblyAssociatedContentFile"))];
 		}
 
-		public void GenerateBonoboAssemblyInfo(string project)
+		public void GenerateBonoboAssemblyInfo(string? project)
 		{
 			string path = $"{Context.BonoboProjectOutputPath}\\{project}\\Properties\\AssemblyInfo.cs";
-			string directory = Path.GetDirectoryName(path);
+			string? directory = Path.GetDirectoryName(path);
 
 			StringBuilder sb = new StringBuilder();
 
@@ -84,8 +82,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine();
 			
-			string visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
-			string theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
+			string? visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
+			string? theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
 
 			ParseTitle(sb);
 			ParseDescription(sb);
@@ -125,7 +123,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			if (!Directory.Exists(directory))
 			{
-				Directory.CreateDirectory(directory);
+				Directory.CreateDirectory(directory!);
 			}
 
 			File.WriteAllText(path, sb.ToString());
@@ -171,7 +169,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public void GenerateManagedAssemblyInfo() 
 		{
 			string path = $"{Context.ManagedProjectOutputPath}\\ManagedBlam\\Properties\\AssemblyInfo.cs";
-			string directory = Path.GetDirectoryName(path);
+			string? directory = Path.GetDirectoryName(path);
 
 			StringBuilder sb = new StringBuilder();
 
@@ -182,8 +180,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			sb.AppendLine();
 
-			string visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
-			string theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
+			string? visible = ComAttributes.Where(x => x.StartsWith("[assembly: ComVisible")).FirstOrDefault();
+			string? theme = ThemeAttributes.Where(x => x.StartsWith("[assembly: ThemeInfo")).FirstOrDefault();
 
 			ParseTitle(sb);
 			ParseDescription(sb);
@@ -223,7 +221,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			if (!Directory.Exists(directory))
 			{
-				Directory.CreateDirectory(directory);
+				Directory.CreateDirectory(directory!);
 			}
 
 			File.WriteAllText(path, sb.ToString());
@@ -231,7 +229,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseTitle(StringBuilder sb)
 		{
-			string title = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTitle")).FirstOrDefault();
+			string? title = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTitle")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(title))
 			{
@@ -246,7 +244,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseDescription(StringBuilder sb)
 		{
-			string description = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyDescription")).FirstOrDefault();
+			string? description = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyDescription")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(description))
 			{
@@ -261,7 +259,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseConfiguration(StringBuilder sb)
 		{
-			string configuration = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyConfiguration")).FirstOrDefault();
+			string? configuration = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyConfiguration")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(configuration))
 			{
@@ -276,7 +274,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseCompany(StringBuilder sb)
 		{
-			string company = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCompany")).FirstOrDefault();
+			string? company = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCompany")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(company))
 			{
@@ -291,7 +289,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseProduct(StringBuilder sb)
 		{
-			string product = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyProduct")).FirstOrDefault();
+			string? product = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyProduct")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(product))
 			{
@@ -306,7 +304,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseCopyright(StringBuilder sb)
 		{
-			string copyright = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCopyright")).FirstOrDefault();
+			string? copyright = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCopyright")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(copyright))
 			{
@@ -321,7 +319,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseTrademark(StringBuilder sb)
 		{
-			string trademark = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTrademark")).FirstOrDefault();
+			string? trademark = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyTrademark")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(trademark))
 			{
@@ -336,7 +334,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseCulture(StringBuilder sb)
 		{
-			string culture = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCulture")).FirstOrDefault();
+			string? culture = AssemblyAttributes.Where(x => x.StartsWith("[assembly: AssemblyCulture")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(culture))
 			{
@@ -351,7 +349,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseVersion(StringBuilder sb) 
 		{
-			string version = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyVersion")).FirstOrDefault();
+			string? version = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyVersion")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(version))
 			{
@@ -366,7 +364,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public static void ParseFileVersion(StringBuilder sb)
 		{
-			string fileVersion = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyFileVersion")).FirstOrDefault();
+			string? fileVersion = VersionAttributes.Where(x => x.StartsWith("[assembly: AssemblyFileVersion")).FirstOrDefault();
 
 			if (string.IsNullOrEmpty(fileVersion))
 			{

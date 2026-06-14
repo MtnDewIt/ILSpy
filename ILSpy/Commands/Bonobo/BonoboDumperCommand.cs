@@ -6,6 +6,7 @@ using System.IO;
 using ICSharpCode.ILSpy.AssemblyTree;
 using ICSharpCode.ILSpy.Commands.Bonobo.Extensions;
 using ICSharpCode.ILSpy.Docking;
+using ICSharpCode.ILSpy.Languages;
 using ICSharpCode.ILSpy.Properties;
 
 namespace ICSharpCode.ILSpy.Commands.Bonobo
@@ -20,7 +21,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		private readonly LanguageService languageService;
 		private readonly DockWorkspace dockWorkspace;
 
-		private Dumper dumper;
+		private Dumper? dumper;
 
 		[ImportingConstructor]
 		public BonoboDumperCommand(AssemblyTreeModel assemblyTreeModel, SettingsService settingsService, LanguageService languageService, DockWorkspace dockWorkspace)
@@ -31,7 +32,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			this.dockWorkspace = dockWorkspace;
 		}
 
-		public override void Execute(object parameter)
+		public override void Execute(object? parameter)
 		{
 			Dictionary<BuildType, string> builds = RegistryHandler.FindEKPaths();
 
@@ -75,9 +76,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			for (int projectIndex = 0; projectIndex < dumper?.Context?.Projects?.Length; projectIndex++)
 			{
-				string project = dumper?.Context?.Projects[projectIndex];
+				string? project = dumper?.Context?.Projects[projectIndex];
 
-				dumper.DumpBonoboProject(project, projectIndex);
+				dumper?.DumpBonoboProject(project, projectIndex);
 
 				string outputPath = $"{dumper?.Context?.BonoboProjectOutputPath}\\{project}";
 				string dumpPath = $"{dumper?.Context?.BonoboProjectDumpPath}\\{project}";
@@ -87,18 +88,18 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					Directory.CreateDirectory(outputPath);
 				}
 
-				dumper.GenerateBonoboProjectFile(project);
+				dumper?.GenerateBonoboProjectFile(project);
 
-				dumper.GenerateBonoboProjectSolution(project);
+				dumper?.GenerateBonoboProjectSolution(project);
 
-				dumper.AssemblyInfoGenerator.BonoboInit(project);
-				dumper.AssemblyInfoGenerator.GenerateBonoboAssemblyInfo(project);
+				dumper?.AssemblyInfoGenerator?.BonoboInit(project);
+				dumper?.AssemblyInfoGenerator?.GenerateBonoboAssemblyInfo(project);
 
 				FilterBonoboFiles(dumpPath);
 
-				dumper.Context?.BuildInfo?.CleanupProjectDump(project, dumper.Context?.BonoboProjectDumpPath);
+				dumper?.Context?.BuildInfo?.CleanupProjectDump(project, dumper?.Context?.BonoboProjectDumpPath);
 
-				dumper.Clear();
+				dumper?.Clear();
 			}
 
 			dumper?.Context?.ValidateBonoboDependenciesPath();
@@ -107,11 +108,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			{
 				string source = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.XMLRelativePaths[dependencyIndex]}";
 				string destination = $"{dumper?.Context?.BonoboProjectDependenciesPath}\\{dumper?.Context?.XMLRelativePaths[dependencyIndex]}";
-				string directory = Path.GetDirectoryName(destination);
+				
+				string? directory = Path.GetDirectoryName(destination);
 
 				if (!Directory.Exists(directory))
 				{
-					Directory.CreateDirectory(directory);
+					Directory.CreateDirectory(directory!);
 				}
 
 				File.Copy(source, destination, true);
@@ -119,8 +121,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			MigrateBonoboDump();
 
-			dumper.GenerateMainBonoboSolution();
-			dumper.GenerateBonoboBuildProps();
+			dumper?.GenerateMainBonoboSolution();
+			dumper?.GenerateBonoboBuildProps();
 		}
 
 		public void DumpManaged() 
@@ -128,7 +130,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			dumper?.Context?.ValidateManagedDumpPath();
 			dumper?.Context?.ValidateManagedOutputPath();
 
-			dumper.DumpManagedProject();
+			dumper?.DumpManagedProject();
 
 			string outputPath = $"{dumper?.Context?.ManagedProjectOutputPath}\\ManagedBlam";
 
@@ -137,14 +139,14 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				Directory.CreateDirectory(outputPath);
 			}
 
-			dumper.GenerateManagedProjectFile();
+			dumper?.GenerateManagedProjectFile();
 
-			dumper.AssemblyInfoGenerator.ManagedInit();
-			dumper.AssemblyInfoGenerator.GenerateManagedAssemblyInfo();
+			dumper?.AssemblyInfoGenerator?.ManagedInit();
+			dumper?.AssemblyInfoGenerator?.GenerateManagedAssemblyInfo();
 
-			dumper.GenerateMainManagedSolution();
+			dumper?.GenerateMainManagedSolution();
 
-			dumper.Clear();
+			dumper?.Clear();
 		}
 
 		public void MigrateBonoboDump()
@@ -199,11 +201,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				{
 					string fileName = Path.GetFileName(xamlFile);
 					string nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
-					string parentDir = Path.GetDirectoryName(xamlFile);
+
+					string? parentDir = Path.GetDirectoryName(xamlFile);
 
 					string convertedName = nameWithoutExt.Replace('.', Path.DirectorySeparatorChar);
 
-					string newBasePath = Path.Combine(parentDir, convertedName);
+					string newBasePath = Path.Combine(parentDir!, convertedName);
 					string newXamlPath = newBasePath + ".xaml";
 
 					string codeFile = newBasePath + ".cs";
@@ -211,10 +214,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 					try
 					{
-						string newXamlDir = Path.GetDirectoryName(newXamlPath);
+						string? newXamlDir = Path.GetDirectoryName(newXamlPath);
+
 						if (!Directory.Exists(newXamlDir))
 						{
-							Directory.CreateDirectory(newXamlDir);
+							Directory.CreateDirectory(newXamlDir!);
 						}
 
 						File.Move(xamlFile, newXamlPath, true);
