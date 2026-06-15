@@ -7,7 +7,13 @@
     <!-- A single (host) RID makes the build copy the native DiaSymReader.Native assets the
          Windows PDB tests need; the explicit RID list makes packages.lock.json carry every RID
          (host-independent), so the lock does not drift between Linux and Windows restores. -->
-    <RuntimeIdentifier>$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</RuntimeIdentifier>
+    <!-- Compute a single (host) RID so the build copies native DiaSymReader.Native assets.
+         RuntimeInformation.RuntimeIdentifier is a static property, not a method, so it cannot
+         be used as an MSBuild property function. Use IsOSPlatform (a static method) instead. -->
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('windows')) And '$(PROCESSOR_ARCHITECTURE)' == 'AMD64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('windows')) And '$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('linux')) And '$(PROCESSOR_ARCHITECTURE)' == 'AMD64'">linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('osx')) And '$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">osx-arm64</RuntimeIdentifier>
     <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;osx-arm64</RuntimeIdentifiers>
 
     <IsPackable>false</IsPackable>
