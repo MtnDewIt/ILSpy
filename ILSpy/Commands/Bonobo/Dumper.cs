@@ -24,7 +24,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public DockWorkspace? DockWorkspace;
 		public DumperContext? Context;
 
-		static DecompilationOptions? options;
+		static DecompilationOptions? decompilationOptions;
 		static MetadataFile? metadataFile;
 
 		static ProjectType[] projectTypes = [];
@@ -107,19 +107,19 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			LoadedAssembly? loadedAssembly = AssemblyTreeModel?.AssemblyList?.FindAssembly(projectPath);
 			metadataFile = loadedAssembly?.GetMetadataFileOrNull();
 
-			options = new DecompilationOptions(SettingsService?.DecompilerSettings!) 
+			decompilationOptions = new DecompilationOptions(SettingsService?.CreateEffectiveDecompilerSettings()!) 
 			{
 				FullDecompilation = true,
 				SaveAsProjectDirectory = outputPath,
 			};
 
-			options.DecompilerSettings.FileScopedNamespaces = false;
-			options.DecompilerSettings.EmitConditionalDefines = true;
+			decompilationOptions.DecompilerSettings.FileScopedNamespaces = false;
+			decompilationOptions.DecompilerSettings.EmitConditionalDefines = true;
 
 			if (loadedAssembly != null)
 			{
 				var nullOutput = new PlainTextOutput(TextWriter.Null);
-				LanguageService?.CurrentLanguage?.DecompileAssembly(loadedAssembly, nullOutput, options);
+				LanguageService?.CurrentLanguage?.DecompileAssembly(loadedAssembly, nullOutput, decompilationOptions);
 			}
 
 			embeddedResources = WholeProjectDecompiler.fileTable.Where(x => string.Equals(x.ItemType, "EmbeddedResource")).ToList().ConvertAll(x => x.FileName);
@@ -140,19 +140,19 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			var loadedAssembly = AssemblyTreeModel?.AssemblyList?.FindAssembly(projectPath);
 			metadataFile = loadedAssembly?.GetMetadataFileOrNull();
 
-			options = new DecompilationOptions(SettingsService?.DecompilerSettings!) 
+			decompilationOptions = new DecompilationOptions(SettingsService?.CreateEffectiveDecompilerSettings()!) 
 			{
 				FullDecompilation = true,
 				SaveAsProjectDirectory = outputPath,
 			};
 
-			options.DecompilerSettings.FileScopedNamespaces = false;
-			options.DecompilerSettings.EmitConditionalDefines = true;
+			decompilationOptions.DecompilerSettings.FileScopedNamespaces = false;
+			decompilationOptions.DecompilerSettings.EmitConditionalDefines = true;
 
 			if (loadedAssembly != null)
 			{
 				var nullOutput = new PlainTextOutput(TextWriter.Null);
-				LanguageService?.CurrentLanguage?.DecompileAssembly(loadedAssembly, nullOutput, options);
+				LanguageService?.CurrentLanguage?.DecompileAssembly(loadedAssembly, nullOutput, decompilationOptions);
 			}
 
 			embeddedResources = WholeProjectDecompiler.fileTable.Where(x => string.Equals(x.ItemType, "EmbeddedResource")).ToList().ConvertAll(x => x.FileName);
@@ -160,7 +160,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public void Clear()
 		{
-			options = null;
+			decompilationOptions = null;
 			metadataFile = null;
 			embeddedResources.Clear();
 			AssemblyTreeModel?.AssemblyList?.Clear();
