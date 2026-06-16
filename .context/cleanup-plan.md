@@ -1,5 +1,3 @@
-Now let me read the key files mentioned in the issues:Now let me look at where `GetUnderlyingEnumType` is defined, and the ExpressionBuilder for enum and cast handling:Now I have the root of the `EnumUnderlyingTypeResolveException`. Let me look at the remaining key files:Now let me look at the BAML decompiler and also check for enum-related handling in the expression builder:Now let me look at the CSharp decompiler for partial class handling and the OutputVisitor for enum/cast handling:I now have a thorough understanding of the codebase. Let me compile the full implementation plan:Here is the full implementation plan, broken down per issue with the exact files, root causes, and concrete changes needed.
-
 ## Issue 1 — Incorrect class reference when class name collides with declaring type
 
 **Root:** `TypeSystemAstBuilder.cs` → `ConvertTypeHelper(IType, IReadOnlyList<IType>)`. When the resolver finds a short name that resolves successfully, it emits `SimpleType(typeDef.Name)`. But it doesn't check whether that short name *also* refers to the current class being declared — causing ambiguity when a field type has the same name as the containing class.
