@@ -58,11 +58,13 @@ bool CollidesWithDeclaringScope(ITypeDefinition typeDef)
     // is NOT the one we want, is a collision.
     for (var scope = resolver.CurrentUsingScope; scope != null; scope = scope.Parent)
     {
+        string scopeFullName = scope.Namespace.FullName;
+
         var candidate = resolver.Compilation.FindType(
             new FullTypeName(
-                string.IsNullOrEmpty(scope.NamespaceName)
+                string.IsNullOrEmpty(scopeFullName)
                     ? typeDef.Name
-                    : scope.NamespaceName + "." + typeDef.Name));
+                    : scopeFullName + "." + typeDef.Name));
 
         if (candidate.Kind != TypeKind.Unknown
             && candidate.GetDefinition()?.FullName != typeDef.FullName)

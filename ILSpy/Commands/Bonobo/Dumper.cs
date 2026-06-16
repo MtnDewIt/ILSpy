@@ -113,6 +113,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				SaveAsProjectDirectory = outputPath,
 			};
 
+			decompilationOptions.DecompilerSettings.AlwaysUseGlobal = false;
 			decompilationOptions.DecompilerSettings.FileScopedNamespaces = false;
 			decompilationOptions.DecompilerSettings.EmitConditionalDefines = true;
 
@@ -146,6 +147,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				SaveAsProjectDirectory = outputPath,
 			};
 
+			decompilationOptions.DecompilerSettings.AlwaysUseGlobal = false;
 			decompilationOptions.DecompilerSettings.FileScopedNamespaces = false;
 			decompilationOptions.DecompilerSettings.EmitConditionalDefines = true;
 

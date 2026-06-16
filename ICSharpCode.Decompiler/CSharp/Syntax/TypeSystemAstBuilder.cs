@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.ComTypes;
 
 using ICSharpCode.Decompiler.CSharp.Resolver;
 using ICSharpCode.Decompiler.CSharp.TypeSystem;
@@ -259,7 +260,7 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 		public bool SupportExtensionDeclarations { get; set; }
 		#endregion
 
-		#region Convert Type
+			#region Convert Type
 		public AstType ConvertType(IType type)
 		{
 			if (type == null)
@@ -532,19 +533,25 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 				{
 					if (!trr.IsError && TypeMatches(trr.Type, typeDef, typeArguments))
 					{
-						// We can use the short type name
-						SimpleType shortResult = MakeSimpleType(typeDef.Name);
-						AddTypeArguments(shortResult, typeDef.TypeParameters, typeArguments, outerTypeParameterCount, typeDef.TypeParameterCount);
-						return shortResult;
+						if (!CollidesWithDeclaringScope(typeDef))
+						{
+							// We can use the short type name
+							SimpleType shortResult = MakeSimpleType(typeDef.Name);
+							AddTypeArguments(shortResult, typeDef.TypeParameters, typeArguments, outerTypeParameterCount, typeDef.TypeParameterCount);
+							return shortResult;
+						}
 					}
 				}
 			}
 
 			if (AlwaysUseShortTypeNames || (typeDef == null && genericType.DeclaringType == null))
 			{
-				var shortResult = MakeSimpleType(genericType.Name);
-				AddTypeArguments(shortResult, genericType.TypeParameters, typeArguments, outerTypeParameterCount, genericType.TypeParameterCount);
-				return shortResult;
+				if (!CollidesWithDeclaringScope(genericType))
+				{
+					var shortResult = MakeSimpleType(genericType.Name);
+					AddTypeArguments(shortResult, genericType.TypeParameters, typeArguments, outerTypeParameterCount, genericType.TypeParameterCount);
+					return shortResult;
+				}
 			}
 			MemberType result = new MemberType();
 			if (genericType.DeclaringType != null)
@@ -564,8 +571,11 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 				// Handle top-level types
 				if (string.IsNullOrEmpty(genericType.Namespace))
 				{
-					result.Target = MakeGlobal();
-					result.IsDoubleColon = true;
+					if (AlwaysUseGlobal)
+					{
+						result.Target = MakeGlobal();
+						result.IsDoubleColon = true;
+					}
 				}
 				else
 				{
@@ -576,6 +586,58 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 			result.MemberName = genericType.Name;
 			AddTypeArguments(result, genericType.TypeParameters, typeArguments, outerTypeParameterCount, genericType.TypeParameterCount);
 			return result;
+		}
+
+		bool CollidesWithDeclaringScope(ITypeDefinition typeDef)
+		{
+			if (resolver?.CurrentUsingScope == null)
+				return false;
+
+			for (var scope = resolver.CurrentUsingScope; scope != null; scope = scope.Parent)
+			{
+				string scopeFullName = scope.Namespace.FullName;
+
+				var candidate = resolver.Compilation.FindType(
+					new FullTypeName(
+						string.IsNullOrEmpty(scopeFullName)
+							? typeDef.Name
+							: scopeFullName + "." + typeDef.Name));
+
+				string candidateFullName = candidate.GetDefinition()?.FullName;
+
+				if (candidate.Kind != TypeKind.Unknown 
+					&& candidateFullName != typeDef.FullName)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool CollidesWithDeclaringScope(IType type)
+		{
+			if (resolver?.CurrentUsingScope == null)
+				return false;
+
+			for (var scope = resolver.CurrentUsingScope; scope != null; scope = scope.Parent)
+			{
+				string scopeFullName = scope.Namespace.FullName;
+
+				var candidate = resolver.Compilation.FindType(
+					new FullTypeName(
+						string.IsNullOrEmpty(scopeFullName)
+							? type.Name
+							: scopeFullName + "." + type.Name));
+
+				string candidateFullName = candidate.GetDefinition()?.FullName;
+
+				if (candidate.Kind != TypeKind.Unknown 
+					&& candidateFullName != type.FullName)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 
 		/// <summary>
@@ -695,11 +757,19 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 				}
 				else
 				{
-					var ns = new MemberType {
-						Target = MakeGlobal(),
-						IsDoubleColon = true,
-						MemberName = namespaceName
-					};
+					AstType ns;
+					if (requiresGlobalPrefix)
+					{
+						ns = new MemberType {
+							Target = MakeGlobal(),
+							IsDoubleColon = true,
+							MemberName = namespaceName
+						};
+					}
+					else
+					{
+						ns = MakeSimpleType(namespaceName);
+					}
 					if (AddResolveResultAnnotations)
 					{
 						var @namespace = resolver.Compilation.RootNamespace.GetChildNamespace(namespaceName);
