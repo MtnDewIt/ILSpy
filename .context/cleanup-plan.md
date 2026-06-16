@@ -134,9 +134,9 @@ if (targetType.Kind == TypeKind.Enum && sourceExpr is PrimitiveExpression { Valu
 }
 ```
 
-`TryBuildFlagsExpression` reuses the same greedy OR-chain logic from 2b.
+`TryBuildFlagsExpression` reuses the same greedy OR-chain logic from 1b.
 
-### Risk for Issue 2
+### Risk for Issue 1
 
 Medium. The enum name-resolution logic touches a heavily exercised code path. The key guard is the `remaining == 0 && parts.Count > 0` check — if decomposition is incomplete (remaining bits don't match any declared member), the fallback is the existing raw integer literal, so output is never *worse* than before.
 
