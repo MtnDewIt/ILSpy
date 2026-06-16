@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
+using System.Linq;
 
 using ICSharpCode.ILSpy.AssemblyTree;
 using ICSharpCode.ILSpy.Commands.Bonobo.Extensions;
@@ -104,11 +105,17 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			dumper?.Context?.ValidateBonoboDependenciesPath();
 
-			for (int dependencyIndex = 0; dependencyIndex < dumper?.Context?.XMLRelativePaths?.Length; dependencyIndex++)
+			List<string> dependencies = dumper?.Context?.XMLRelativePaths
+				.Union(dumper?.Context?.ExternalRelativePaths!)
+				.Append(dumper?.Context?.ManagedRelativePath!)
+				.ToList() 
+				?? [];
+
+			for (int dependencyIndex = 0; dependencyIndex < dependencies.Count; dependencyIndex++)
 			{
-				string source = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.XMLRelativePaths[dependencyIndex]}";
-				string destination = $"{dumper?.Context?.BonoboProjectDependenciesPath}\\{dumper?.Context?.XMLRelativePaths[dependencyIndex]}";
-				
+				string source = $"{dumper?.Context?.BonoboPath}\\{dependencies[dependencyIndex]}";
+				string destination = $"{dumper?.Context?.BonoboProjectDependenciesPath}\\{dependencies[dependencyIndex]}";
+
 				string? directory = Path.GetDirectoryName(destination);
 
 				if (!Directory.Exists(directory))
