@@ -190,7 +190,7 @@ namespace ICSharpCode.Decompiler.TypeSystem
 		{
 			var def = type.GetEnumUnderlyingType().GetDefinition();
 			if (def == null)
-				throw new EnumUnderlyingTypeResolveException();
+				return SRM.PrimitiveTypeCode.Int32;
 			return def.KnownTypeCode.ToPrimitiveTypeCode();
 		}
 
