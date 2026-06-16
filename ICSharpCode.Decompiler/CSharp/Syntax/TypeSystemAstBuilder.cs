@@ -24,6 +24,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Xml.Linq;
 
 using ICSharpCode.Decompiler.CSharp.Resolver;
 using ICSharpCode.Decompiler.CSharp.TypeSystem;
@@ -605,8 +606,9 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 
 				string candidateFullName = candidate.GetDefinition()?.FullName;
 
-				if (candidate.Kind != TypeKind.Unknown 
-					&& candidateFullName != typeDef.FullName)
+				if (candidate.Kind != TypeKind.Unknown
+					&& candidateFullName != typeDef.FullName
+					&& !candidateFullName.Contains(typeDef.Namespace))
 				{
 					return true;
 				}
@@ -632,7 +634,8 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 				string candidateFullName = candidate.GetDefinition()?.FullName;
 
 				if (candidate.Kind != TypeKind.Unknown 
-					&& candidateFullName != type.FullName)
+					&& candidateFullName != type.FullName
+					&& !candidateFullName.Contains(type.Namespace))
 				{
 					return true;
 				}
