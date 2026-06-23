@@ -607,7 +607,7 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 							? typeDef.Name
 							: scopeFullName + "." + typeDef.Name));
 
-				string candidateFullName = candidate.GetDefinition()?.FullName;
+				string candidateFullName = candidate.GetDefinition()?.FullName ?? string.Empty;
 
 				if (candidate.Kind != TypeKind.Unknown
 					&& candidateFullName != typeDef.FullName
@@ -634,7 +634,7 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 							? type.Name
 							: scopeFullName + "." + type.Name));
 
-				string candidateFullName = candidate.GetDefinition()?.FullName;
+				string candidateFullName = candidate.GetDefinition()?.FullName ?? string.Empty;
 
 				if (candidate.Kind != TypeKind.Unknown 
 					&& candidateFullName != type.FullName
