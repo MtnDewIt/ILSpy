@@ -2757,7 +2757,7 @@ namespace ICSharpCode.Decompiler.CSharp.OutputVisitor
 		public virtual void VisitMemberType(MemberType memberType)
 		{
 			StartNode(memberType);
-			memberType.Target.AcceptVisitor(this);
+			memberType.Target?.AcceptVisitor(this);
 			if (memberType.IsDoubleColon)
 			{
 				WriteToken(Tokens.DoubleColon);
