@@ -1,7 +1,11 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
+using System.Diagnostics.CodeAnalysis;
 
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using ICSharpCode.Decompiler.CSharp.Syntax.PatternMatching;
@@ -10,9 +14,10 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 {
 	class NormalizeBlockStatements : DepthFirstAstVisitor, IAstTransform
 	{
+		[AllowNull]
 		TransformContext context;
 		bool hasNamespace;
-		NamespaceDeclaration singleNamespaceDeclaration;
+		NamespaceDeclaration? singleNamespaceDeclaration;
 
 		public override void VisitSyntaxTree(SyntaxTree syntaxTree)
 		{
@@ -86,9 +91,9 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			DoTransform(usingStatement.EmbeddedStatement, usingStatement);
 		}
 
-		void DoTransform(Statement statement, Statement parent)
+		void DoTransform(Statement? statement, Statement parent)
 		{
-			if (statement.IsNull)
+			if (statement is null)
 				return;
 			if (context.Settings.AlwaysUseBraces)
 			{
@@ -112,18 +117,16 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 		bool IsElseIf(Statement statement, Statement parent)
 		{
-			return parent is IfElseStatement && statement.Role == IfElseStatement.FalseRole;
+			return parent is IfElseStatement && statement.Slot?.Kind == Slots.FalseStatement;
 		}
 
 		static void InsertBlock(Statement statement)
 		{
-			if (statement.IsNull)
-				return;
 			if (!(statement is BlockStatement))
 			{
 				var b = new BlockStatement();
 				statement.ReplaceWith(b);
-				if (statement is EmptyStatement && !statement.Children.Any())
+				if (statement is EmptyStatement && !statement.HasChildren)
 				{
 					b.CopyAnnotationsFrom(statement);
 				}
@@ -139,7 +142,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			switch (statement)
 			{
 				case IfElseStatement ies:
-					return parent is IfElseStatement && ies.Role == IfElseStatement.FalseRole;
+					return parent is IfElseStatement && ies.Slot?.Kind == Slots.FalseStatement;
 				case VariableDeclarationStatement vds:
 				case WhileStatement ws:
 				case DoWhileStatement dws:
@@ -196,7 +199,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			Attributes = { new Repeat(new AnyNode()) },
 			Modifiers = Modifiers.Any,
 			PrivateImplementationType = new AnyNodeOrNull(),
-			Parameters = { new Repeat(new AnyNode()) },
+			Parameters = { new Repeat(new AnyNode())! },
 			ReturnType = new AnyNode(),
 			Getter = new Accessor() {
 				Modifiers = Modifiers.Any,
@@ -214,12 +217,14 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			var m = CalculatedGetterOnlyPropertyPattern.Match(propertyDeclaration);
 			if (!m.Success)
 				return;
-			if ((propertyDeclaration.Getter.Modifiers & ~movableModifiers) != 0)
+			if (propertyDeclaration.Getter is not { } getter)
 				return;
-			propertyDeclaration.Modifiers |= propertyDeclaration.Getter.Modifiers;
+			if ((getter.Modifiers & ~movableModifiers) != 0)
+				return;
+			propertyDeclaration.Modifiers |= getter.Modifiers;
 			propertyDeclaration.ExpressionBody = m.Get<Expression>("expression").Single().Detach();
-			propertyDeclaration.CopyAnnotationsFrom(propertyDeclaration.Getter);
-			propertyDeclaration.Getter.Remove();
+			propertyDeclaration.CopyAnnotationsFrom(getter);
+			getter.Remove();
 		}
 
 		void SimplifyIndexerDeclaration(IndexerDeclaration indexerDeclaration)
@@ -227,12 +232,14 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			var m = CalculatedGetterOnlyIndexerPattern.Match(indexerDeclaration);
 			if (!m.Success)
 				return;
-			if ((indexerDeclaration.Getter.Modifiers & ~movableModifiers) != 0)
+			if (indexerDeclaration.Getter is not { } getter)
 				return;
-			indexerDeclaration.Modifiers |= indexerDeclaration.Getter.Modifiers;
+			if ((getter.Modifiers & ~movableModifiers) != 0)
+				return;
+			indexerDeclaration.Modifiers |= getter.Modifiers;
 			indexerDeclaration.ExpressionBody = m.Get<Expression>("expression").Single().Detach();
-			indexerDeclaration.CopyAnnotationsFrom(indexerDeclaration.Getter);
-			indexerDeclaration.Getter.Remove();
+			indexerDeclaration.CopyAnnotationsFrom(getter);
+			getter.Remove();
 		}
 	}
 }

@@ -124,14 +124,14 @@ namespace ICSharpCode.ILSpy.Languages
 			//this.externAliasKeywordColor = ...;
 		}
 
-		public override void WriteKeyword(Role role, string keyword)
+		public override void WriteKeyword(string keyword)
 		{
 			HighlightingColor? color = null;
 			switch (keyword)
 			{
 				case "namespace":
 				case "using":
-					if (role == UsingStatement.UsingKeywordRole)
+					if (nodeStack.PeekOrDefault() is UsingStatement)
 						color = structureKeywordsColor;
 					else
 						color = namespaceKeywordsColor;
@@ -187,7 +187,7 @@ namespace ICSharpCode.ILSpy.Languages
 					color = typeKeywordsColor;
 					break;
 				case "with":
-					if (role == WithInitializerExpression.WithKeywordRole)
+					if (nodeStack.PeekOrDefault() is WithInitializerExpression)
 						color = typeKeywordsColor;
 					break;
 				case "try":
@@ -197,7 +197,7 @@ namespace ICSharpCode.ILSpy.Languages
 					color = exceptionKeywordsColor;
 					break;
 				case "when":
-					if (role == CatchClause.WhenKeywordRole)
+					if (nodeStack.PeekOrDefault() is CatchClause)
 						color = exceptionKeywordsColor;
 					break;
 				case "get":
@@ -205,11 +205,7 @@ namespace ICSharpCode.ILSpy.Languages
 				case "add":
 				case "remove":
 				case "init":
-					if (role == PropertyDeclaration.GetKeywordRole ||
-						role == PropertyDeclaration.SetKeywordRole ||
-						role == PropertyDeclaration.InitKeywordRole ||
-						role == CustomEventDeclaration.AddKeywordRole ||
-						role == CustomEventDeclaration.RemoveKeywordRole)
+					if (nodeStack.PeekOrDefault() is Accessor)
 						color = accessorKeywordsColor;
 					break;
 				case "abstract":
@@ -227,7 +223,7 @@ namespace ICSharpCode.ILSpy.Languages
 					color = modifiersColor;
 					break;
 				case "readonly":
-					if (role == ComposedType.ReadonlyRole)
+					if (nodeStack.PeekOrDefault() is ComposedType)
 						color = parameterModifierColor;
 					else
 						color = modifiersColor;
@@ -251,7 +247,8 @@ namespace ICSharpCode.ILSpy.Languages
 					color = referenceTypeKeywordsColor;
 					break;
 				case "record":
-					color = role == Roles.RecordKeyword ? referenceTypeKeywordsColor : valueTypeKeywordsColor;
+					color = nodeStack.PeekOrDefault() is TypeDeclaration { ClassType: ClassType.RecordClass }
+						? referenceTypeKeywordsColor : valueTypeKeywordsColor;
 					break;
 				case "select":
 				case "group":
@@ -293,7 +290,7 @@ namespace ICSharpCode.ILSpy.Languages
 			if (nodeStack.PeekOrDefault() is AttributeSection)
 				color = attributeKeywordsColor;
 			using (Colored(color))
-				base.WriteKeyword(role, keyword);
+				base.WriteKeyword(keyword);
 		}
 
 		public override void WritePrimitiveType(string type)
@@ -350,7 +347,7 @@ namespace ICSharpCode.ILSpy.Languages
 				{
 					if (identifier.Name == "value"
 						&& identifier.Ancestors.OfType<Accessor>().FirstOrDefault() is { } accessor
-						&& accessor.Role != PropertyDeclaration.GetterRole)
+						&& accessor.Slot?.Kind != Slots.Getter)
 					{
 						color = valueKeywordColor;
 					}
@@ -440,7 +437,7 @@ namespace ICSharpCode.ILSpy.Languages
 			}
 		}
 
-		public override void WritePrimitiveValue(object value, ICSharpCode.Decompiler.CSharp.Syntax.LiteralFormat format)
+		public override void WritePrimitiveValue(object? value, ICSharpCode.Decompiler.CSharp.Syntax.LiteralFormat format)
 		{
 			HighlightingColor? color = null;
 			if (value is null)
@@ -476,17 +473,17 @@ namespace ICSharpCode.ILSpy.Languages
 
 			AstNode node = nodeStack.Peek();
 			var symbol = node.GetSymbol();
-			if (symbol == null && node.Role == Roles.TargetExpression && node.Parent is InvocationExpression)
+			if (symbol == null && node.Slot?.Kind == Slots.TargetExpression && node.Parent is InvocationExpression)
 			{
 				symbol = node.Parent.GetSymbol();
 			}
-			if (symbol != null && node.Role == Roles.Type && node.Parent is ObjectCreateExpression)
+			if (symbol != null && node.Slot?.Kind == Slots.Type && node.Parent is ObjectCreateExpression)
 			{
 				var ctorSymbol = node.Parent.GetSymbol();
 				if (ctorSymbol != null)
 					symbol = ctorSymbol;
 			}
-			if (node is IdentifierExpression && node.Role == Roles.TargetExpression && node.Parent is InvocationExpression && symbol is IMember member)
+			if (node is IdentifierExpression && node.Slot?.Kind == Slots.TargetExpression && node.Parent is InvocationExpression && symbol is IMember member)
 			{
 				var declaringType = member.DeclaringType;
 				if (declaringType != null && declaringType.Kind == TypeKind.Delegate)

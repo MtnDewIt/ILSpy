@@ -560,9 +560,8 @@ namespace ICSharpCode.ILSpy.Languages
 						continue;
 					entryStream.Position = 0;
 					fileName = handler.WriteResourceToFile(assembly, fileName, entryStream, context);
-					var item = new ProjectItemInfo(handler.EntryType, fileName) { PartialTypes = context.PartialTypes, AdditionalProperties = [] };
-					foreach (var (k, v) in context.AdditionalProperties)
-						item.AdditionalProperties.Add(k, v);
+					var item = new ProjectItemInfo(handler.EntryType, fileName) { PartialTypes = context.PartialTypes };
+					item = item.With(context.AdditionalProperties);
 					return new[] { item };
 				}
 				return base.WriteResourceToFile(fileName, resourceName, entryStream);
@@ -614,21 +613,21 @@ namespace ICSharpCode.ILSpy.Languages
 							}
 							break;
 						case FieldDeclaration fd:
-							if (fd.Variables.All(v => v.Initializer.IsNull))
+							if (fd.Variables.All(v => v.Initializer is null))
 							{
 								fd.Remove();
 								removedSymbols.Add(fd.GetSymbol());
 							}
 							break;
 						case EventDeclaration ed:
-							if (ed.Variables.All(v => v.Initializer.IsNull))
+							if (ed.Variables.All(v => v.Initializer is null))
 							{
 								ed.Remove();
 								removedSymbols.Add(ed.GetSymbol());
 							}
 							break;
 						case PropertyDeclaration pd:
-							if (pd.Initializer.IsNull)
+							if (pd.Initializer is null)
 							{
 								pd.Remove();
 								removedSymbols.Add(pd.GetSymbol());
@@ -641,7 +640,7 @@ namespace ICSharpCode.ILSpy.Languages
 							break;
 					}
 				}
-				if (ctorDecl?.Initializer.ConstructorInitializerType == ConstructorInitializerType.This)
+				if (ctorDecl?.Initializer?.ConstructorInitializerType == ConstructorInitializerType.This)
 				{
 					foreach (var node in rootNode.Children)
 					{

@@ -131,7 +131,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				bool skippedStmts = false;
 
 				Statement? stmt;
-				for (stmt = ctor.Body.Statements.FirstOrDefault(); stmt != null; stmt = stmt.GetNextStatement())
+				for (stmt = ctor.Body?.Statements.FirstOrDefault(); stmt != null; stmt = stmt.GetNextStatement())
 				{
 					var m = memberInitializerPattern.Match(stmt);
 					if (!m.Success)
@@ -200,6 +200,8 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 			public bool IsMatch(ConstructorDeclaration ctor)
 			{
+				if (ctor.Body is null)
+					return false;
 				var stmts = ctor.Body.Statements;
 				var otherStmt = stmts.FirstOrDefault();
 				foreach (var (stmt, member, initializer, _) in Statements)
@@ -282,7 +284,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				MemberToDeclaringSyntaxNodeMap = members
 					.Select(m => (symbol: m.GetSymbol(), entity: (EntityDeclaration)m))
 					.Where(_ => _.symbol is IMember)
-					.ToDictionary(_ => (IMember)_.symbol, _ => _.entity);
+					.ToDictionary(_ => (IMember)_.symbol!, _ => _.entity);
 
 				List<ConstructorDeclaration> constructorsNotChainedWithThis = [];
 				List<ConstructorDeclaration> allCtors = [];
@@ -296,7 +298,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 				foreach (var ctor in members.OfType<ConstructorDeclaration>())
 				{
-					var ctorMethod = (IMethod)ctor.GetSymbol();
+					var ctorMethod = (IMethod)ctor.GetSymbol()!;
 					Debug.Assert(ctorMethod.IsConstructor);
 					Debug.Assert(ctorMethod.MetadataToken.IsNil == false);
 
@@ -326,7 +328,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 					else
 					{
 						// find this-ctor call
-						var stmt = ctor.Body.Statements.FirstOrDefault();
+						var stmt = ctor.Body?.Statements.FirstOrDefault();
 						var m = ctorMethod.DeclaringType.Kind == TypeKind.Struct
 							? ThisCallStructPattern.Match(stmt)
 							: ThisCallClassPattern.Match(stmt);
@@ -349,7 +351,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 					// this constructor could be converted to a primary constructor
 					var ctor = constructorsNotChainedWithThis[0];
-					var ctorMethod = (IMethod)constructorsNotChainedWithThis[0].GetSymbol();
+					var ctorMethod = (IMethod)constructorsNotChainedWithThis[0].GetSymbol()!;
 
 					var initializer = InitializerSequence.Analyze(this, ctor, ctorMethod);
 
@@ -423,7 +425,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 						bool isPrimaryCtor = constructorsNotChainedWithThis[0] == PrimaryConstructorDecl;
 						var sequence = isPrimaryCtor
 							? PrimaryConstructorInitializers
-							: InitializerSequence.Analyze(this, constructorsNotChainedWithThis[0], (IMethod)constructorsNotChainedWithThis[0].GetSymbol());
+							: InitializerSequence.Analyze(this, constructorsNotChainedWithThis[0], (IMethod)constructorsNotChainedWithThis[0].GetSymbol()!);
 
 						if (sequence == null)
 							return false;
@@ -449,6 +451,8 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 			public bool MoveConstructorInitializer(ConstructorDeclaration constructorDeclaration, IMethod ctorMethod)
 			{
+				if (constructorDeclaration.Body is null)
+					return false;
 				Statement stmt = constructorDeclaration.Body.Statements.FirstOrDefault()!;
 				var isValueType = ctorMethod.DeclaringType.Kind == TypeKind.Struct;
 
@@ -478,7 +482,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				var ci = new ConstructorInitializer { ConstructorInitializerType = type };
 
 				// Move arguments from invocation to initializer:
-				invocation.GetChildrenByRole(Roles.Argument).MoveTo(ci.Arguments);
+				invocation.GetChildren(Slots.Argument).MoveTo(ci.Arguments);
 				// Add the initializer: (unless it is the default 'base()')
 				if (!(ci.ConstructorInitializerType == ConstructorInitializerType.Base && ci.Arguments.Count == 0))
 					constructorDeclaration.Initializer = ci.CopyAnnotationsFrom(invocation);
@@ -512,7 +516,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 					{
 						case FieldDeclaration fd:
 							v = fd.Variables.Single();
-							if (v.Initializer.IsNull)
+							if (v.Initializer is null)
 							{
 								v.Initializer = initializer.Detach();
 							}
@@ -542,7 +546,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 							break;
 						case PropertyDeclaration pd:
 							Debug.Assert(pd.IsAutomaticProperty);
-							if (pd.Initializer.IsNull)
+							if (pd.Initializer is null)
 							{
 								pd.Initializer = initializer.Detach();
 							}
@@ -554,7 +558,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 							break;
 						case EventDeclaration ev:
 							v = ev.Variables.Single();
-							if (v.Initializer.IsNull)
+							if (v.Initializer is null)
 							{
 								v.Initializer = initializer.Detach();
 							}
@@ -603,10 +607,10 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 					Debug.Assert(PrimaryConstructorDecl != null);
 
 					this.TypeDeclaration.HasPrimaryConstructor = PrimaryConstructor.Parameters.Any()
-						|| !PrimaryConstructorDecl.Initializer.IsNull
+						|| PrimaryConstructorDecl.Initializer is not null
 						|| TypeDefinition.Kind == TypeKind.Struct;
 
-					// HACK: because our current AST model doesn't allow specifying an explicit order of roles,
+					// HACK: because our current AST model doesn't allow specifying an explicit ordering across slots,
 					// we have to explicitly insert the primary constructor parameters,
 					// MoveTo would just append the parameters to the list of children
 					if (PrimaryConstructorDecl.Parameters.Count > 0)
@@ -615,7 +619,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 						foreach (var param in PrimaryConstructorDecl.Parameters)
 						{
 							param.Remove();
-							this.TypeDeclaration.InsertChildAfter(insertionPoint, param, Roles.Parameter);
+							this.TypeDeclaration.InsertChildAfter(insertionPoint, param, Slots.Parameter);
 							insertionPoint = param;
 						}
 					}
@@ -671,15 +675,15 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 						this.TypeDeclaration.Modifiers |= Modifiers.Unsafe;
 					}
 
-					if (!PrimaryConstructorDecl.Initializer.IsNull && TypeDeclaration is { BaseTypes.Count: > 0 })
+					if (PrimaryConstructorDecl.Initializer is { } initializer && TypeDeclaration is { BaseTypes.Count: > 0 })
 					{
-						Debug.Assert(PrimaryConstructorDecl.Initializer is { ConstructorInitializerType: ConstructorInitializerType.Base });
+						Debug.Assert(initializer.ConstructorInitializerType == ConstructorInitializerType.Base);
 
 						var baseType = TypeDeclaration.BaseTypes.First();
 						var newBaseType = new InvocationAstType();
 						baseType.ReplaceWith(newBaseType);
 						newBaseType.BaseType = baseType;
-						PrimaryConstructorDecl.Initializer.GetChildrenByRole(Roles.Argument).MoveTo(newBaseType.Arguments);
+						initializer.Arguments.MoveTo(newBaseType.Arguments);
 					}
 
 					PrimaryConstructorDecl.Remove();
@@ -690,7 +694,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				{
 					Debug.Assert(StaticConstructorDecl != null);
 
-					if (IsBeforeFieldInit && StaticConstructorDecl.Body.Statements.Count == 0)
+					if (IsBeforeFieldInit && StaticConstructorDecl.Body is { Statements.Count: 0 })
 					{
 						StaticConstructorDecl.Remove();
 					}
@@ -701,7 +705,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 					return;
 
 				var ctor = InstanceConstructors[0];
-				var ctorMethod = (IMethod)ctor.GetSymbol();
+				var ctorMethod = (IMethod)ctor.GetSymbol()!;
 
 				if (TypeDefinition.Kind == TypeKind.Struct && ctorMethod.Parameters.Count == 0 && InstanceInitializers != null)
 				{
@@ -806,7 +810,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 			foreach (var typeDeclaration in node.Descendants.OfType<TypeDeclaration>())
 			{
-				var currentTypeDefinition = (ITypeDefinition)typeDeclaration.GetSymbol();
+				var currentTypeDefinition = (ITypeDefinition)typeDeclaration.GetSymbol()!;
 				TransformDeclaration(currentTypeDefinition, typeDeclaration, typeDeclaration.Members);
 			}
 		}
@@ -834,7 +838,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 			foreach (var constructorDeclaration in members.OfType<ConstructorDeclaration>())
 			{
-				analyzer.MoveConstructorInitializer(constructorDeclaration, (IMethod)constructorDeclaration.GetSymbol());
+				analyzer.MoveConstructorInitializer(constructorDeclaration, (IMethod)constructorDeclaration.GetSymbol()!);
 			}
 
 			analyzer.RemoveImplicitConstructor();
@@ -856,7 +860,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				}
 				identifier.Parent.RemoveAnnotations<MemberResolveResult>();
 				identifier.Parent.AddAnnotation(new ILVariableResolveResult(v));
-				identifier.ReplaceWith(Identifier.Create(v.Name));
+				identifier.ReplaceWith(Identifier.Create(v.Name!));
 			}
 
 			return true;

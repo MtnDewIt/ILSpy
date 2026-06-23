@@ -112,18 +112,18 @@ namespace ICSharpCode.Decompiler
 		{
 			AstNode node = nodeStack.Peek();
 			var symbol = node.GetSymbol();
-			if (symbol == null && node.Role == Roles.TargetExpression && node.Parent is InvocationExpression)
+			if (symbol == null && node.Slot?.Kind == Slots.TargetExpression && node.Parent is InvocationExpression)
 			{
 				symbol = node.Parent.GetSymbol();
 			}
-			if (symbol != null && node.Role == Roles.Type && node.Parent is ObjectCreateExpression)
+			if (symbol != null && node.Slot?.Kind == Slots.Type && node.Parent is ObjectCreateExpression)
 			{
 				var ctorSymbol = node.Parent.GetSymbol();
 				if (ctorSymbol != null)
 					symbol = ctorSymbol;
 			}
 
-			if (node is IdentifierExpression && node.Role == Roles.TargetExpression && node.Parent is InvocationExpression && symbol is IMember member)
+			if (node is IdentifierExpression && node.Slot?.Kind == Slots.TargetExpression && node.Parent is InvocationExpression && symbol is IMember member)
 			{
 				var declaringType = member.DeclaringType;
 				if (declaringType != null && declaringType.Kind == TypeKind.Delegate)
@@ -161,7 +161,7 @@ namespace ICSharpCode.Decompiler
 					return method + gotoStatement.Label;
 			}
 
-			if (node.Role == Roles.TargetExpression && node.Parent is InvocationExpression)
+			if (node.Slot?.Kind == Slots.TargetExpression && node.Parent is InvocationExpression)
 			{
 				var symbol = node.Parent.GetSymbol();
 				if (symbol is LocalFunctionMethod)
@@ -184,7 +184,7 @@ namespace ICSharpCode.Decompiler
 					return variable;
 			}
 
-			if (id.Role == QueryJoinClause.IntoIdentifierRole || id.Role == QueryJoinClause.JoinIdentifierRole)
+			if (id.Slot?.Kind == Slots.IntoIdentifier || id.Slot?.Kind == Slots.JoinIdentifier)
 			{
 				var variable = id.Annotation<ILVariableResolveResult>()?.Variable;
 				if (variable != null)
@@ -229,10 +229,10 @@ namespace ICSharpCode.Decompiler
 			return null;
 		}
 
-		public override void WriteKeyword(Role role, string keyword)
+		public override void WriteKeyword(string keyword)
 		{
 			//To make reference for 'this' and 'base' keywords in the ClassName():this() expression
-			if (role == ConstructorInitializer.ThisKeywordRole || role == ConstructorInitializer.BaseKeywordRole)
+			if (keyword is "this" or "base")
 			{
 				if (nodeStack.Peek() is ConstructorInitializer initializer && initializer.GetSymbol() is IMember member)
 				{
@@ -244,7 +244,7 @@ namespace ICSharpCode.Decompiler
 			// so that go-to-definition on 'override' navigates to the base member.
 			// Modifier tokens are written without being pushed onto the node stack,
 			// so the top of the stack is the declaration the modifier belongs to.
-			if (role == EntityDeclaration.ModifierRole && keyword == "override"
+			if (keyword == "override"
 				&& nodeStack.Peek() is EntityDeclaration entityDeclaration
 				&& entityDeclaration.GetSymbol() is IMember { IsOverride: true } overrideMember
 				&& InheritanceHelper.GetBaseMember(overrideMember) is IMember baseMember)
@@ -271,12 +271,14 @@ namespace ICSharpCode.Decompiler
 			return false;
 		}
 
-		public override void WriteToken(Role role, string token)
+		public override void WriteToken(string token)
 		{
 			switch (token)
 			{
 				case "{":
-					if (role != Roles.LBrace)
+					// Interpolation braces ("{" inside an interpolated string) are not structural
+					// braces: they neither fold nor affect the within-type brace level.
+					if (nodeStack.PeekOrDefault() is Interpolation)
 					{
 						output.Write("{");
 						break;
@@ -289,7 +291,7 @@ namespace ICSharpCode.Decompiler
 					break;
 				case "}":
 					output.Write('}');
-					if (role != Roles.RBrace)
+					if (nodeStack.PeekOrDefault() is Interpolation)
 						break;
 					if (NeedsFold(nodeStack.PeekOrDefault()) || settings.FoldBraces)
 						output.MarkFoldEnd();
@@ -300,7 +302,7 @@ namespace ICSharpCode.Decompiler
 					// Attach member reference to token only if there's no identifier in the current node.
 					var member = GetCurrentMemberReference();
 					var node = nodeStack.Peek();
-					if (member != null && node.GetChildByRole(Roles.Identifier).IsNull)
+					if (member != null && node.GetChild(Slots.Identifier) is null)
 					{
 						switch (member)
 						{
@@ -426,7 +428,7 @@ namespace ICSharpCode.Decompiler
 				case "object":
 					var node = nodeStack.Peek();
 					ISymbol symbol;
-					if (node.Role == Roles.Type && node.Parent is ObjectCreateExpression)
+					if (node.Slot?.Kind == Slots.Type && node.Parent is ObjectCreateExpression)
 					{
 						symbol = node.Parent.GetSymbol();
 					}

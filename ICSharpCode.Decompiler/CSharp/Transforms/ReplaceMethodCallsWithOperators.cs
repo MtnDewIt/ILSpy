@@ -16,7 +16,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -41,6 +44,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			MemberName = "TypeHandle"
 		};
 
+		[AllowNull]
 		TransformContext context;
 
 		public override void VisitInvocationExpression(InvocationExpression invocationExpression)
@@ -59,9 +63,9 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			// Reduce "String.Concat(a, b)" to "a + b"
 			if (IsStringConcat(method) && context.Settings.StringConcat)
 			{
-				if (arguments is [ArrayCreateExpression ace] && method.Parameters is [{ Type: ArrayType }])
+				if (arguments is [ArrayCreateExpression { Initializer: { } aceInitializer }] && method.Parameters is [{ Type: ArrayType }])
 				{
-					arguments = ace.Initializer.Elements.ToArray();
+					arguments = aceInitializer.Elements.ToArray();
 				}
 
 				if (!CheckArgumentsForStringConcat(arguments))
@@ -232,7 +236,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				);
 				return;
 			}
-			if (method.Name == "op_True" && arguments.Length == 1 && invocationExpression.Role == Roles.Condition)
+			if (method.Name == "op_True" && arguments.Length == 1 && invocationExpression.Slot?.Kind == Slots.Condition)
 			{
 				invocationExpression.ReplaceWith(arguments[0].UnwrapInDirectionExpression());
 				return;
@@ -508,7 +512,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			Match m = getMethodOrConstructorFromHandlePattern.Match(castExpression);
 			if (m.Success)
 			{
-				IMethod method = m.Get<AstNode>("method").Single().GetSymbol() as IMethod;
+				IMethod? method = m.Get<AstNode>("method").Single().GetSymbol() as IMethod;
 				if (m.Has("declaringType") && method != null)
 				{
 					Expression newNode = new MemberReferenceExpression(new TypeReferenceExpression(m.Get<AstType>("declaringType").Single().Detach()), method.Name);

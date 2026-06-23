@@ -16,6 +16,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -47,7 +49,9 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 			if (context.Settings.UsingDeclarations)
 			{
-				var insertionPoint = rootNode.Children.LastOrDefault(n => n is PreProcessorDirective p && p.Type == PreProcessorDirectiveType.Define);
+				// #define directives are leading trivia on the SyntaxTree, not children, so using
+				// declarations go at the very start of the member list.
+				AstNode? insertionPoint = null;
 
 				// Now add using declarations for those namespaces:
 				IOrderedEnumerable<string> sortedImports = requiredImports.ImportedNamespaces
@@ -69,7 +73,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 					{
 						resolvedNamespaces.Add(resolvedNamespace);
 					}
-					rootNode.InsertChildAfter(insertionPoint, new UsingDeclaration { Import = nsType }, SyntaxTree.MemberRole);
+					rootNode.InsertChildAfter(insertionPoint, new UsingDeclaration { Import = nsType }, Slots.Member);
 				}
 			}
 
@@ -117,7 +121,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				base.VisitSimpleType(simpleType); // also visit type arguments
 			}
 
-			private void AddImportedNamespace(IType type)
+			private void AddImportedNamespace(IType? type)
 			{
 				if (type != null && !IsParentOfCurrentNamespace(type.Namespace))
 				{
@@ -212,7 +216,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				this.astBuilder = CreateAstBuilder(resolver);
 			}
 
-			TypeSystemAstBuilder CreateAstBuilder(CSharpResolver resolver, IL.ILFunction function = null)
+			TypeSystemAstBuilder CreateAstBuilder(CSharpResolver resolver, IL.ILFunction? function = null)
 			{
 				if (function != null)
 				{
@@ -375,7 +379,7 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 
 			public override void VisitSimpleType(SimpleType simpleType)
 			{
-				TypeResolveResult rr;
+				TypeResolveResult? rr;
 				if ((rr = simpleType.Annotation<TypeResolveResult>()) == null)
 				{
 					base.VisitSimpleType(simpleType);

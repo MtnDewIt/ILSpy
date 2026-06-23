@@ -16,15 +16,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+#nullable enable
+
 using System;
 using System.Linq;
 
-namespace ICSharpCode.Decompiler.CSharp.Syntax
+namespace ICSharpCode.Decompiler.CSharp.Syntax.PatternMatching
 {
 	/// <summary>
 	/// Matches identifier expressions that have the same identifier as the referenced variable/type definition/method definition.
 	/// </summary>
-	public class IdentifierExpressionBackreference : PatternMatching.Pattern
+	public class IdentifierExpressionBackreference : Pattern
 	{
 		readonly string referencedGroupName;
 
@@ -39,15 +41,17 @@ namespace ICSharpCode.Decompiler.CSharp.Syntax
 			this.referencedGroupName = referencedGroupName;
 		}
 
-		public override bool DoMatch(PatternMatching.INode other, PatternMatching.Match match)
+		public override bool DoMatch(INode? other, Match match)
 		{
-			IdentifierExpression ident = other as IdentifierExpression;
+			var ident = other as IdentifierExpression;
 			if (ident == null || ident.TypeArguments.Any())
 				return false;
-			AstNode referenced = (AstNode)match.Get(referencedGroupName).Last();
-			if (referenced == null)
+			if (match.Get(referencedGroupName).Last() is not AstNode referenced)
 				return false;
-			return ident.Identifier == referenced.GetChildByRole(Roles.Identifier).Name;
+			Identifier? referencedIdentifier = referenced.GetChild(Slots.Identifier);
+			if (referencedIdentifier == null)
+				return false;
+			return ident.Identifier == referencedIdentifier.Name;
 		}
 	}
 }
