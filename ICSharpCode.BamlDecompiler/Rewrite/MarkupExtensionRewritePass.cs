@@ -131,7 +131,8 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 					return false;
 			}
 			else if (ctxElement.Annotation<XamlProperty>() == null &&
-					 ctxElement.Name != ctor)
+					 ctxElement.Name != ctor &&
+					 !IsKnownMarkupExtensionElement(ctxElement))
 				return false;
 
 			foreach (var child in ctxElement.Elements())
@@ -140,6 +141,13 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 					return false;
 			}
 			return true;
+		}
+
+		static bool IsKnownMarkupExtensionElement(XElement element)
+		{
+			string localName = element.Name.LocalName;
+			return localName is "Binding" or "MultiBinding" or "PriorityBinding" or "TemplateBinding"
+				|| localName.EndsWith("Extension", System.StringComparison.Ordinal);
 		}
 
 		object InlineObject(XamlContext ctx, XNode obj)
@@ -176,7 +184,13 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 			var ext = new XamlExtension(type);
 
 			foreach (var attr in ctxElement.Attributes().Where(attr => attr.Name.Namespace != XNamespace.Xmlns))
-				ext.NamedArguments[attr.Name.LocalName] = attr.Value;
+			{
+				string argName = attr.Name.LocalName;
+				int dotIndex = argName.LastIndexOf('.');
+				if (dotIndex >= 0)
+					argName = argName.Substring(dotIndex + 1);
+				ext.NamedArguments[argName] = attr.Value;
+			}
 
 			foreach (var child in ctxElement.Nodes())
 			{

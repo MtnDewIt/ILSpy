@@ -536,12 +536,30 @@ namespace ICSharpCode.Decompiler.CSharp
 				}
 				return convertedResult;
 			}
-			else if (rr.IsError && targetType.IsReferenceType == true && type.IsReferenceType == true)
+			if (targetUType.Kind == TypeKind.Enum && ResolveResult.IsCompileTimeConstant && ResolveResult.ConstantValue != null)
+			{
+				var enumExpr = expressionBuilder.astBuilder.ConvertConstantValue(targetType, type, ResolveResult.ConstantValue);
+				if (enumExpr is not CastExpression)
+				{
+					return new CastExpression(expressionBuilder.ConvertType(targetType), Expression)
+						.WithILInstruction(this.ILInstructions)
+						.WithRR(new ConstantResolveResult(targetType, ResolveResult.ConstantValue));
+				}
+			}
+			if (rr.IsError && targetType.IsReferenceType == true && type.IsReferenceType == true)
 			{
 				// Conversion between two reference types, but no direct cast allowed? cast via object
 				// Just make sure we avoid infinite recursion even if the resolver falsely claims we can't cast directly:
 				if (!(targetType.IsKnownType(KnownTypeCode.Object) || type.IsKnownType(KnownTypeCode.Object)))
 				{
+					var directConversion = conversions.ExplicitConversion(ResolveResult, targetType);
+					if (!directConversion.IsValid)
+						directConversion = conversions.ImplicitConversion(ResolveResult, targetType);
+					if (directConversion.IsValid)
+					{
+						return new CastExpression(expressionBuilder.ConvertType(targetType), Expression)
+							.WithoutILInstruction().WithRR(new ConversionResolveResult(targetType, ResolveResult, directConversion));
+					}
 					return this.ConvertTo(compilation.FindType(KnownTypeCode.Object), expressionBuilder)
 						.ConvertTo(targetType, expressionBuilder, checkForOverflow, allowImplicitConversion);
 				}

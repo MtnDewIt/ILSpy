@@ -184,6 +184,7 @@ namespace ICSharpCode.Decompiler.CSharp
 			return new List<IAstTransform> {
 				new PatternStatementTransform(),
 				new ReplaceMethodCallsWithOperators(), // must run before DeclareVariables.EnsureExpressionStatementsAreValid
+				new SimplifyRedundantCasts(),
 				new IntroduceUnsafeModifier(),
 				new AddCheckedBlocks(),
 				new DeclareVariables(), // should run after most transforms that modify statements
@@ -1633,6 +1634,8 @@ namespace ICSharpCode.Decompiler.CSharp
 					partialTypeInfo = null;
 				}
 
+				bool isXamlCodeBehind = partialTypeInfo != null || XamlCodeBehindHelper.IsXamlCodeBehindClass(typeDef);
+
 				if (settings.ExtensionMembers)
 				{
 					foreach (var group in typeDef.ExtensionInfo?.ExtensionGroups ?? [])
@@ -1677,7 +1680,7 @@ namespace ICSharpCode.Decompiler.CSharp
 					// Remove the [DefaultMember] attribute if the class contains indexers
 					RemoveAttribute(typeDecl, KnownAttribute.DefaultMember);
 				}
-				if (partialTypeInfo != null)
+				if (isXamlCodeBehind)
 				{
 					typeDecl.Modifiers |= Modifiers.Partial;
 				}
@@ -1756,6 +1759,11 @@ namespace ICSharpCode.Decompiler.CSharp
 			void DoDecompileMember(IEntity entity, RecordDecompiler? recordDecompiler, PartialTypeInfo? partialType, ExtensionInfo? extensionInfo)
 			{
 				if (partialType != null && partialType.IsDeclaredMember(entity.MetadataToken))
+				{
+					return;
+				}
+
+				if (XamlCodeBehindHelper.IsGeneratedMember(entity, typeDef))
 				{
 					return;
 				}
