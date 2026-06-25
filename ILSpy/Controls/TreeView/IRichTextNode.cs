@@ -16,32 +16,25 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-using System.Composition;
+using AvaloniaEdit.Highlighting;
 
-using ICSharpCode.Decompiler.TypeSystem;
-using ICSharpCode.ILSpy.Properties;
-
-namespace ICSharpCode.ILSpy.Commands
+namespace ICSharpCode.ILSpy.Controls.TreeView
 {
 	/// <summary>
-	/// Right-click → "Decompile" (go to definition) on a symbol in the decompiled code. Navigates
-	/// the assembly tree to the clicked entity's definition and decompiles it -- the menu equivalent
-	/// of clicking the hyperlink. Visible only when the click landed on a reference that resolves to
-	/// an <see cref="IEntity"/>.
+	/// Implemented by tree nodes whose label should render as syntax-highlighted rich text
+	/// (coloured runs, bold type names) instead of the plain string from
+	/// <c>SharpTreeNode.Text</c>. The cell template renders <see cref="CreateRichText"/> when
+	/// it returns a value and falls back to the plain <c>Text</c> otherwise, so a node's
+	/// <c>Text</c> stays the authoritative plain-string representation for search, copy and
+	/// keyboard navigation.
 	/// </summary>
-	[ExportContextMenuEntry(Header = nameof(Resources.Decompile), Category = "Navigation", Order = 150)]
-	[Shared]
-	public sealed class DecompileReferenceContextMenuEntry : IContextMenuEntry
+	public interface IRichTextNode
 	{
-		public bool IsVisible(TextViewContext context) => context.Reference?.Reference is IEntity;
-
-		public bool IsEnabled(TextViewContext context) => true;
-
-		public void Execute(TextViewContext context)
-		{
-			if (context.Reference?.Reference is not IEntity entity)
-				return;
-			Util.MessageBus.Send(this, new Util.NavigateToReferenceEventArgs(entity));
-		}
+		/// <summary>
+		/// The highlighted label, or <see langword="null"/> to fall back to the plain
+		/// <c>Text</c> (e.g. when no entity is available or the active language has no
+		/// highlighting). The returned text must equal the plain <c>Text</c>.
+		/// </summary>
+		RichText? CreateRichText();
 	}
 }
