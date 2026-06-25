@@ -106,15 +106,25 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			$"bin\\tools\\bonobo\\System.Reactive.dll",
 		];
 
+		public static readonly string[] PROJECT_CONFIG_RELATIVE_PATHS =
+		[
+			$"Foundation.exe.config",
+			$"bin\\tools\\bonobo\\FoundationConsole.exe.config",
+			$"bin\\tools\\bonobo\\Corinth.Core.dll.config",
+			$"bin\\tools\\bonobo\\TagService.exe.config",
+			$"bin\\tools\\bonobo\\TagWatcher.exe.config",
+		];
+
 		public static readonly string MANAGED_RELATIVE_PATH = $"bin\\ManagedBlam.dll";
 
 		public string[] GetProjects() => DOTNET_PROJECTS;
         public string[] GetRelativePaths() => DOTNET_RELATIVE_PATHS;
         public string[] GetXMLRelativePaths() => PROJECT_XML_RELATIVE_PATHS;
 		public string[] GetExternalRelativePaths() => PROJECT_EXTERNAL_DEPENDENCIES;
+		public string[] GetConfigRelativePaths() => PROJECT_CONFIG_RELATIVE_PATHS;
 		public string? GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
 
-		public string FilterRelativePath(string? path)
+		public string? FilterRelativePath(string? path)
 		{
 			if (string.IsNullOrEmpty(path))
 			{
@@ -241,45 +251,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.Rename($"{path}\\images", $"{path}\\Images");
 
-			DirectoryHelper.Rename($"{path}\\DemoCustomSectionComplete\\DemoScenarioSection.cs", $"{path}\\DemoCustomSectionComplete\\DemoScenarioSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\demo\\democustomsectioncomplete\\demoscenariosection.xaml", $"{path}\\DemoCustomSectionComplete\\DemoScenarioSection.xaml");
-			DirectoryHelper.Rename($"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.cs", $"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\demo\\democustomsectionwithdelete\\demoscenariosection.xaml", $"{path}\\DemoCustomSectionWithDelete\\DemoScenarioSection.xaml");
-
-			DirectoryHelper.Rename($"{path}\\rendermodel", $"{path}\\RenderModel");
-			DirectoryHelper.Rename($"{path}\\RenderModel\\RenderModelSection.cs", $"{path}\\RenderModel\\RenderModelSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\RenderModel\\rendermodelsection.xaml", $"{path}\\RenderModel\\RenderModelSection.xaml");
-
-			DirectoryHelper.Rename($"{path}\\tagannotations", $"{path}\\TagAnnotations");
-			DirectoryHelper.Rename($"{path}\\TagAnnotations\\AreaAnnotationViewItemPanel.cs", $"{path}\\TagAnnotations\\AreaAnnotationViewItemPanel.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagAnnotations\\areaannotationviewfield.xaml", $"{path}\\TagAnnotations\\AreaAnnotationViewItemPanel.xaml");
-
-			DirectoryHelper.Rename($"{path}\\tagcustomsection", $"{path}\\TagCustomSection");
-
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BitmapImportSection.cs", $"{path}\\TagCustomSection\\BitmapImportSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\bitmapimportsection.xaml", $"{path}\\TagCustomSection\\BitmapImportSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BitmapSection.cs", $"{path}\\TagCustomSection\\BitmapSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\bitmapsection.xaml", $"{path}\\TagCustomSection\\BitmapSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\BlendScreenSection.cs", $"{path}\\TagCustomSection\\BlendScreenSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\blendscreensection\\blendscreensection.xaml", $"{path}\\TagCustomSection\\BlendScreenSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\FormationSection.cs", $"{path}\\TagCustomSection\\FormationSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\formationsection.xaml", $"{path}\\TagCustomSection\\FormationSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\FrameEventsSection.cs", $"{path}\\TagCustomSection\\FrameEventsSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\frameeventssection.xaml", $"{path}\\TagCustomSection\\FrameEventsSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\SoundClassesSection.cs", $"{path}\\TagCustomSection\\SoundClassesSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\soundclassessection.xaml", $"{path}\\TagCustomSection\\SoundClassesSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\SourceFileListSection.cs", $"{path}\\TagCustomSection\\SourceFileListSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\sourcefilelistsection.xaml", $"{path}\\TagCustomSection\\SourceFileListSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\StringsSection.cs", $"{path}\\TagCustomSection\\StringsSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\stringssection.xaml", $"{path}\\TagCustomSection\\StringsSection.xaml");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\UsurpPreviewCustomSection.cs", $"{path}\\TagCustomSection\\UsurpPreviewCustomSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagCustomSection\\usurppreviewcustomsection.xaml", $"{path}\\TagCustomSection\\UsurpPreviewCustomSection.xaml");
-
-			Directory.Delete($"{path}\\TagCustomSection\\blendscreensection", true);
-
 			DirectoryHelper.Rename($"{path}\\taggridview", $"{path}\\TagGridView");
 			DirectoryHelper.Rename($"{path}\\taggridview\\themes", $"{path}\\TagGridView\\Themes");
-			DirectoryHelper.Rename($"{path}\\taggridview\\themes\\generic.xaml", $"{path}\\TagGridView\\Themes\\Generic.xaml");
+			DirectoryHelper.Rename($"{path}\\TagGridView\\Themes\\generic.xaml", $"{path}\\TagGridView\\Themes\\Generic.xaml");
 
 			Directory.CreateDirectory($"{path}\\TagGridView\\Themes\\Resources");
 			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldCustomGridCellResources.xaml", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldCustomGridCellResources.xaml");
@@ -287,17 +261,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldGridCellResources.xaml", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldGridCellResources.xaml");
 			DirectoryHelper.Rename($"{path}\\TagGridView\\GridFields\\TagFieldGridCellResources.xaml.cs", $"{path}\\TagGridView\\Themes\\Resources\\TagFieldGridCellResources.xaml.cs");
 
-			DirectoryHelper.Rename($"{path}\\tagtemplateview", $"{path}\\TagTemplateView");
-
 			Directory.CreateDirectory($"{path}\\TagTemplateView\\Themes\\Resources");
 			DirectoryHelper.Rename($"{path}\\TagTemplateView\\Values\\TagValuePanelResources.xaml", $"{path}\\TagTemplateView\\Themes\\Resources\\TagValuePanelResources.xaml");
 			DirectoryHelper.Rename($"{path}\\TagTemplateView\\Values\\TagValuePanelResources.xaml.cs", $"{path}\\TagTemplateView\\Themes\\Resources\\TagValuePanelResources.xaml.cs");
 			DirectoryHelper.Rename($"{path}\\TagTemplateView\\ParameterResources.xaml", $"{path}\\TagTemplateView\\Themes\\Resources\\ParameterResources.xaml");
 			DirectoryHelper.Rename($"{path}\\TagTemplateView\\ParameterResources.xaml.cs", $"{path}\\TagTemplateView\\Themes\\Resources\\ParameterResources.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\TagTemplateView\\shared\\colorswatchtagtemplatevalue.xaml", $"{path}\\TagTemplateView\\ColorSwatchTagTemplateValue.xaml");
-			DirectoryHelper.Rename($"{path}\\TagTemplateView\\ColorSwatchTagTemplateValue.cs", $"{path}\\TagTemplateView\\ColorSwatchTagTemplateValue.xaml.cs");
-
-			Directory.Delete($"{path}\\TagTemplateView\\shared", true);
 
 			DirectoryHelper.Rename($"{path}\\tagview", $"{path}\\TagView");
 			DirectoryHelper.Rename($"{path}\\tagview\\images", $"{path}\\TagView\\Images");
@@ -311,7 +279,6 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			File.Delete($"{path}\\Properties\\Resources.cs");
 
 			Directory.Delete($"{path}\\Bonobo", true);
-			Directory.Delete($"{path}\\demo", true);
 		}
 
 		public static void CleanupBonobo(string path)
@@ -468,12 +435,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\Plugins", $"{path}");
 
 			DirectoryHelper.Rename($"{path}\\librarian", $"{path}\\Librarian");
-			DirectoryHelper.Rename($"{path}\\modelanimationgraphcustomsection", $"{path}\\ModelAnimationGraphCustomSection");
+
 			DirectoryHelper.Rename($"{path}\\themes", $"{path}\\Themes");
 			DirectoryHelper.Rename($"{path}\\Librarian\\images", $"{path}\\Librarian\\Images");
 
-			DirectoryHelper.Rename($"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.cs", $"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.xaml.cs");
-			DirectoryHelper.Rename($"{path}\\ModelAnimationGraphCustomSection\\modelanimationgraphsection.xaml", $"{path}\\ModelAnimationGraphCustomSection\\ModelAnimationGraphSection.xaml");
 			DirectoryHelper.Rename($"{path}\\Themes\\generic.xaml", $"{path}\\Themes\\Generic.xaml");
 
 			File.Delete($"{path}\\Properties\\Resources.cs");

@@ -72,8 +72,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		public void DumpBonobo() 
 		{
+			dumper?.Context?.ValidateBonoboTempPath();
 			dumper?.Context?.ValidateBonoboDumpPath();
 			dumper?.Context?.ValidateBonoboOutputPath();
+
+			CopyAssembliesToTemp();
 
 			for (int projectIndex = 0; projectIndex < dumper?.Context?.Projects?.Length; projectIndex++)
 			{
@@ -156,6 +159,38 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			dumper?.Clear();
 		}
 
+		public void CopyAssembliesToTemp() 
+		{
+			for (int dependencyIndex = 0; dependencyIndex < dumper?.Context?.RelativePaths?.Length; dependencyIndex++)
+			{
+				string dependencyPath = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.RelativePaths[dependencyIndex]}";
+				string tempPath = $"{dumper?.Context?.BonoboProjectTempPath}\\{Path.GetFileName(dumper?.Context?.RelativePaths[dependencyIndex])}";
+
+				File.Copy(dependencyPath, tempPath, true);
+			}
+
+			for (int configIndex = 0; configIndex < dumper?.Context?.ConfigRelativePaths?.Length; configIndex++)
+			{
+				string configPath = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.ConfigRelativePaths[configIndex]}";
+				string tempPath = $"{dumper?.Context?.BonoboProjectTempPath}\\{Path.GetFileName(dumper?.Context?.ConfigRelativePaths[configIndex])}";
+
+				File.Copy(configPath, tempPath, true);
+			}
+
+			for (int externalDependencyIndex = 0; externalDependencyIndex < dumper?.Context?.ExternalRelativePaths?.Length; externalDependencyIndex++)
+			{
+				string externalDependencyPath = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.ExternalRelativePaths[externalDependencyIndex]}";
+				string tempPath = $"{dumper?.Context?.BonoboProjectTempPath}\\{Path.GetFileName(dumper?.Context?.ExternalRelativePaths[externalDependencyIndex])}";
+
+				File.Copy(externalDependencyPath, tempPath, true);
+			}
+
+			string managedBlamPath = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.ManagedRelativePath}";
+			string managedBlamTempPath = $"{dumper?.Context?.BonoboProjectTempPath}\\{Path.GetFileName(dumper?.Context?.ManagedRelativePath)}";
+
+			File.Copy(managedBlamPath, managedBlamTempPath);
+		}
+
 		public void MigrateBonoboDump()
 		{
 			string[] allowedExtensions =
@@ -176,6 +211,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				"AssemblyInfo.cs",
 			];
 
+			string tempPath = $"{dumper?.Context?.BonoboProjectTempPath}";
 			string dumpPath = $"{dumper?.Context?.BonoboProjectDumpPath}";
 			string outputPath = $"{dumper?.Context?.BonoboProjectOutputPath}";
 
@@ -195,6 +231,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			DirectoryHelper.MoveFiles($"{outputPath}\\Bonobo\\splash.png", $"{outputPath}\\Assets\\Bonobo\\BonoboSplash.png");
 
 			Directory.Delete($"{outputPath}\\Bonobo\\Images", true);
+			Directory.Delete(tempPath, true);
 			Directory.Delete(dumpPath, true);
 		}
 

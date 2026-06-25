@@ -8,6 +8,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 		public string[] GetRelativePaths() => [];
 		public string[] GetXMLRelativePaths() => [];
 		public string[] GetExternalRelativePaths() => [];
+		public string[] GetConfigRelativePaths() => [];
 		public string? GetManagedRelativePath() => MANAGED_RELATIVE_PATH;
 		public string? FilterRelativePath(string? path) => null;
 		

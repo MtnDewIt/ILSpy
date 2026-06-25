@@ -14,6 +14,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
         public string? OutputPath { get; set; }
         public string? BonoboPath { get; set; }
+		public string? BonoboProjectTempPath { get; set; }
         public string? BonoboProjectDumpPath { get; set; }
         public string? BonoboProjectOutputPath { get; set; }
 		public string? BonoboProjectDependenciesPath { get; set; }
@@ -26,6 +27,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
         public string[] RelativePaths { get; set; }
         public string[] XMLRelativePaths { get; set; }
 		public string[] ExternalRelativePaths { get; set; }
+		public string[] ConfigRelativePaths { get; set; }
 
 		public DumperContext(BuildType buildType, string buildPath)
 		{
@@ -36,6 +38,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			RelativePaths = [];
 			XMLRelativePaths = [];
 			ExternalRelativePaths = [];
+			ConfigRelativePaths = [];
 		}
 
 		public bool Init(SettingsService settings) 
@@ -72,8 +75,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
             RelativePaths = BuildInfo.GetRelativePaths();
             XMLRelativePaths = BuildInfo.GetXMLRelativePaths();
 			ExternalRelativePaths = BuildInfo.GetExternalRelativePaths();
-			ManagedRelativePath = BuildInfo?.GetManagedRelativePath();
+			ConfigRelativePaths = BuildInfo.GetConfigRelativePaths();
+			ManagedRelativePath = BuildInfo.GetManagedRelativePath();
 
+			BonoboProjectTempPath = $"{OutputPath}\\{Build}\\Bonobo\\Temp";
 			BonoboProjectDumpPath = $"{OutputPath}\\{Build}\\Bonobo\\Dump";
             BonoboProjectOutputPath = $"{OutputPath}\\{Build}\\Bonobo\\Output";
 			BonoboProjectDependenciesPath = $"{OutputPath}\\{Build}\\Bonobo\\Output\\Dependencies";
@@ -103,6 +108,14 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
                 _ => throw new InvalidOperationException($"Unsupported build type: {Build}"),
             };
         }
+
+		public void ValidateBonoboTempPath()
+		{
+			if (!Directory.Exists(BonoboProjectTempPath))
+			{
+				Directory.CreateDirectory(BonoboProjectTempPath!);
+			}
+		}
 
 		public void ValidateBonoboDumpPath()
 		{

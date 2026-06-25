@@ -95,7 +95,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public void DumpBonoboProject(string? project, int projectIndex)
 		{
 			string outputPath = $"{Context?.BonoboProjectDumpPath}\\{Context?.Projects![projectIndex]}";
-			string projectPath = $"{Context?.BonoboPath}\\{Context?.RelativePaths[projectIndex]}";
+			string projectPath = $"{Context?.BonoboProjectTempPath}\\{Path.GetFileName(Context?.RelativePaths[projectIndex]!)}";
+
+			if (!File.Exists(projectPath))
+			{
+				throw new FileNotFoundException();
+			}
 
 			if (!Directory.Exists(outputPath))
 			{
