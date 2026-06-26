@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILSpy.ReadyToRun", "ILSpy.R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPlugin", "TestPlugin\TestPlugin.csproj", "{62B21FB3-2A55-4F51-8892-9D6B9864BC22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILSpy.Bonobo.Tests", "ILSpy.Bonobo.Tests\ILSpy.Bonobo.Tests.csproj", "{3A72C49A-E97E-4844-8B91-700B46818F56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -211,8 +213,23 @@ Global
 		{62B21FB3-2A55-4F51-8892-9D6B9864BC22}.Release|x64.Build.0 = Release|Any CPU
 		{62B21FB3-2A55-4F51-8892-9D6B9864BC22}.Release|x86.ActiveCfg = Release|Any CPU
 		{62B21FB3-2A55-4F51-8892-9D6B9864BC22}.Release|x86.Build.0 = Release|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Debug|x64.Build.0 = Debug|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Debug|x86.Build.0 = Debug|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Release|x64.ActiveCfg = Release|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Release|x64.Build.0 = Release|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Release|x86.ActiveCfg = Release|Any CPU
+		{3A72C49A-E97E-4844-8B91-700B46818F56}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {783B2F75-01BB-4F4B-AF77-3F5219CB5A97}
 	EndGlobalSection
 EndGlobal
