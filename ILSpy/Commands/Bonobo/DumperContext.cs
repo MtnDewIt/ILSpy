@@ -41,6 +41,54 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			ConfigRelativePaths = [];
 		}
 
+		public bool Init(string outputPath) 
+		{
+			Platform = PlatformType.x64;
+			OutputPath = outputPath;
+
+			if (Build == BuildType.Invalid)
+			{
+				//MessageBox.Show("Build was invalid!");
+				return false;
+			}
+
+			if (!Directory.Exists(OutputPath))
+			{
+				//MessageBox.Show("OutputPath does not exist!");
+				return false;
+			}
+
+			if (!Directory.Exists(BonoboPath))
+			{
+				//MessageBox.Show("BonoboPath does not exist!");
+				return false;
+			}
+
+			InitializeBuildInfo();
+
+			if (BuildInfo == null)
+			{
+				return false;
+			}
+
+			Projects = BuildInfo.GetProjects();
+			RelativePaths = BuildInfo.GetRelativePaths();
+			XMLRelativePaths = BuildInfo.GetXMLRelativePaths();
+			ExternalRelativePaths = BuildInfo.GetExternalRelativePaths();
+			ConfigRelativePaths = BuildInfo.GetConfigRelativePaths();
+			ManagedRelativePath = BuildInfo.GetManagedRelativePath();
+
+			BonoboProjectTempPath = $"{OutputPath}\\{Build}\\Bonobo\\Temp";
+			BonoboProjectDumpPath = $"{OutputPath}\\{Build}\\Bonobo\\Dump";
+			BonoboProjectOutputPath = $"{OutputPath}\\{Build}\\Bonobo\\Output";
+			BonoboProjectDependenciesPath = $"{OutputPath}\\{Build}\\Bonobo\\Output\\Dependencies";
+
+			ManagedProjectDumpPath = $"{OutputPath}\\{Build}\\ManagedBlam\\Dump";
+			ManagedProjectOutputPath = $"{OutputPath}\\{Build}\\ManagedBlam\\Output";
+
+			return true;
+		}
+
 		public bool Init(SettingsService settings) 
         {
 			Platform = settings.BonoboSettings.Platform;
