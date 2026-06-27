@@ -27,6 +27,8 @@ namespace ILSpy.Bonobo.Tests
 				{
 					await BonoboCompiler.CleanProjectAsync($"{Context?.BonoboProjectOutputPath}");
 
+					int successCount = 0;
+
 					for (int projectIndex = 0; projectIndex < Context?.Projects.Length; projectIndex++)
 					{
 						string currentProject = Context?.Projects[projectIndex]!;
@@ -37,15 +39,26 @@ namespace ILSpy.Bonobo.Tests
 
 						List<string> errors = await BonoboCompiler.BuildAndLogErrorsAsync(projectPath);
 
+						bool failed = errors.Any(e => e.Contains("Build FAILED."));
+
+						if (!failed)
+						{
+							successCount++;
+						}
+
 						foreach (string error in errors)
 						{
-							Console.WriteLine($"[{currentProject}]: {error}");
+							Console.WriteLine($"[{Context?.Build} - {currentProject}]: {error}");
 						}
 
 						Console.WriteLine();
 
 						BonoboCompiler.CleanupProjectFile(projectPath, build.Value);
 					}
+
+					double? successRate = Context?.Projects.Length > 0 ? (double)successCount / Context?.Projects.Length : 0.0;
+
+					Console.WriteLine($"{successCount}/{Context?.Projects.Length} BUILT - {successRate:P0} SUCCESS RATE\n");
 				}
 			}
 		}

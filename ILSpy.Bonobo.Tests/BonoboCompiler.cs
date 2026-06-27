@@ -150,7 +150,7 @@ namespace ILSpy.Bonobo.Tests
 					{
 						if (line.Contains("<Reference") && !line.Contains("ManagedBlam.dll"))
 						{
-							if (!hasHitProjectReferences)
+							if (!hasHitProjectReferences && (Program.Context?.ExternalRelativePaths.All(x => !line.Contains(x)) ?? false))
 							{
 								line = line
 									.Replace("..\\Dependencies", ekRoot)
@@ -200,7 +200,7 @@ namespace ILSpy.Bonobo.Tests
 					{
 						if (line.Contains("<Reference") && line.Contains(ekRoot))
 						{
-							if (!hasHitProjectReferences)
+							if (!hasHitProjectReferences && (Program.Context?.ExternalRelativePaths.All(x => !line.Contains(x)) ?? false))
 							{
 								line = line
 									.Replace(ekRoot, "..\\Dependencies");

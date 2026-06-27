@@ -40,6 +40,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 		const string aspNetCorePrefix = "Microsoft.AspNetCore";
 		const string presentationFrameworkName = "PresentationFramework";
+		const string presentationCoreName = "PresentationCore";
 		const string windowsFormsName = "System.Windows.Forms";
 
 		static readonly string[] implicitReferences =
@@ -308,6 +309,12 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			List<string> externalDependencies = [];
 			List<string> internalDependencies = [];
 
+			// Hack fix since the .Schema.Blam projects references it explicitly
+			if (project?.EndsWith(".Schema.Blam") ?? false)
+			{
+				externalDependencies.Add("WindowsBase");
+			}
+
 			foreach (var reference in metadataFile?.AssemblyReferences.Where(r => !implicitReferences.Contains(r.Name))!)
 			{
 				if (string.Equals(reference.Name, "managedblam") && !dependencies.Contains(reference.Name))
@@ -317,6 +324,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 				if (string.Equals(reference.Name, "Foundation") && !references.Contains("Bonobo"))
 				{
+					dependencies.Add("Foundation.exe");
 					references.Add("Bonobo");
 				}
 
@@ -531,7 +539,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					types.Add(ProjectType.Web);
 				}
 
-				if (referenceName == presentationFrameworkName)
+				if (referenceName == presentationFrameworkName || referenceName == presentationCoreName)
 				{
 					types.Add(ProjectType.Wpf);
 				}
