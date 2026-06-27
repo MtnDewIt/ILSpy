@@ -25,13 +25,15 @@ namespace ILSpy.Bonobo.Tests
 
 				if (Context?.Build != BuildType.Forerunner && Context?.Build != BuildType.Atlas)
 				{
-					BonoboCompiler.CleanProject($"{Context?.BonoboProjectOutputPath}");
+					await BonoboCompiler.CleanProjectAsync($"{Context?.BonoboProjectOutputPath}");
 
 					for (int projectIndex = 0; projectIndex < Context?.Projects.Length; projectIndex++)
 					{
 						string currentProject = Context?.Projects[projectIndex]!;
 
 						string projectPath = $"{Context?.BonoboProjectOutputPath}\\{currentProject}\\{currentProject}.csproj";
+
+						BonoboCompiler.SetupProjectFile(projectPath, build.Value);
 
 						List<string> errors = await BonoboCompiler.BuildAndLogErrorsAsync(projectPath);
 
@@ -41,6 +43,8 @@ namespace ILSpy.Bonobo.Tests
 						}
 
 						Console.WriteLine();
+
+						BonoboCompiler.CleanupProjectFile(projectPath, build.Value);
 					}
 				}
 			}

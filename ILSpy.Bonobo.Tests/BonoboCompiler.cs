@@ -1,17 +1,16 @@
 using System.Diagnostics;
+using System.Text;
 
 namespace ILSpy.Bonobo.Tests
 {
-	public class BonoboCompiler
+	public static class BonoboCompiler
 	{
 		public static async Task<List<string>> BuildAndLogErrorsAsync(string projectPath)
 		{
 			List<string> errorLogs = [];
 
-			using var process = new Process 
-			{
-				StartInfo = new ProcessStartInfo 
-				{
+			using var process = new Process {
+				StartInfo = new ProcessStartInfo {
 					FileName = "dotnet",
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
@@ -24,16 +23,14 @@ namespace ILSpy.Bonobo.Tests
 			process.StartInfo.ArgumentList.Add(projectPath);
 			process.StartInfo.ArgumentList.Add("-clp:ErrorsOnly");
 
-			process.OutputDataReceived += (sender, e) => 
-			{
+			process.OutputDataReceived += (sender, e) => {
 				if (!string.IsNullOrWhiteSpace(e.Data))
 				{
 					errorLogs.Add(e.Data);
 				}
 			};
 
-			process.ErrorDataReceived += (sender, e) => 
-			{
+			process.ErrorDataReceived += (sender, e) => {
 				if (!string.IsNullOrWhiteSpace(e.Data))
 				{
 					errorLogs.Add(e.Data);
@@ -57,20 +54,46 @@ namespace ILSpy.Bonobo.Tests
 			return errorLogs;
 		}
 
-		public static void CleanProject(string projectRoot) 
+		public static async Task CleanProjectAsync(string projectPath)
+		{
+			CleanBuildFiles(projectPath);
+
+			using var process = new Process {
+				StartInfo = new ProcessStartInfo {
+					FileName = "dotnet",
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					UseShellExecute = false,
+					CreateNoWindow = true
+				}
+			};
+
+			process.StartInfo.ArgumentList.Add("clean");
+			process.StartInfo.ArgumentList.Add(projectPath);
+
+			try
+			{
+				process.Start();
+
+				process.BeginOutputReadLine();
+				process.BeginErrorReadLine();
+
+				await process.WaitForExitAsync();
+			}
+			catch (Exception ex)
+			{
+				throw new Exception($"Project Cleanup Failed: {ex.Message}");
+			}
+		}
+
+		public static void CleanBuildFiles(string projectRoot)
 		{
 			string[] targetFolders =
 			[
-				"bin", 
-				"obj", 
-				".vs", 
+				"bin",
+				"obj",
+				".vs",
 			];
-
-			if (!Directory.Exists(projectRoot))
-			{
-				// #TODO: Error Handling
-				return;
-			}
 
 			try
 			{
@@ -93,22 +116,100 @@ namespace ILSpy.Bonobo.Tests
 								Directory.Delete(dir, true);
 							}
 						}
-						else
-						{
-							// #TODO: Error Handling
-						}
 					}
 				}
 			}
-			catch (UnauthorizedAccessException)
+			catch (Exception)
 			{
-				// #TODO: Error Handling
 				return;
+			}
+		}
+
+		public static void SetupProjectFile(string projectPath, string ekRoot) 
+		{
+			string tempPath = $"{Path.GetTempPath()}{Path.GetFileName(projectPath)}";
+
+			try
+			{
+				UTF8Encoding encoding = new UTF8Encoding(false);
+
+				string? line;
+
+				using (StreamReader reader = new StreamReader(projectPath, Encoding.UTF8))
+				using (StreamWriter writer = new StreamWriter(tempPath, false, encoding))
+				{
+					while ((line = reader.ReadLine()) != null)
+					{
+						if (line.Contains("<Reference"))
+						{
+							line = line
+								.Replace("..\\Dependencies", ekRoot)
+								.Replace("<!-- ", string.Empty)
+								.Replace(" -->", string.Empty);
+						}
+
+						if (line.Contains("<ProjectReference"))
+						{
+							line = $"    <!-- {line.Replace("    ", string.Empty)} -->";
+						}
+
+						writer.WriteLine(line);
+					}
+				}
+
+				File.Move(tempPath, projectPath, true);
 			}
 			catch (Exception)
 			{
-				// #TODO: Error Handling
-				return;
+				if (File.Exists(tempPath))
+				{
+					File.Delete(tempPath);
+				}
+			}
+		}
+
+		public static void CleanupProjectFile(string projectPath, string ekRoot) 
+		{
+			string tempPath = $"{Path.GetTempPath()}{Path.GetFileName(projectPath)}";
+
+			try
+			{
+				UTF8Encoding encoding = new UTF8Encoding(false);
+
+				string? line;
+
+				using (StreamReader reader = new StreamReader(projectPath, Encoding.UTF8))
+				using (StreamWriter writer = new StreamWriter(tempPath, false, encoding))
+				{
+					while ((line = reader.ReadLine()) != null)
+					{
+						if (line.Contains("<Reference") && line.Contains(ekRoot))
+						{
+							line = line
+								.Replace(ekRoot, "..\\Dependencies");
+
+							line = $"    <!-- {line.Replace("    ", string.Empty)} -->";
+						}
+
+						if (line.Contains("<ProjectReference"))
+						{
+							line = line
+								.Replace("<!-- ", string.Empty)
+								.Replace(" -->", string.Empty);
+						}
+
+						writer.WriteLine(line);
+					}
+				}
+
+				File.Move(tempPath, projectPath, true);
+			}
+			catch (Exception)
+			{
+				if (File.Exists(tempPath))
+				{
+					File.Delete(tempPath);
+				}
 			}
 		}
 	}
