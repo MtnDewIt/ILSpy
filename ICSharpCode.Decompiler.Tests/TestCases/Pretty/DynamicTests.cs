@@ -310,6 +310,23 @@ namespace ICSharpCode.Decompiler.Tests.TestCases.Pretty
 			}
 		}
 
+		private static void BitwiseAndShiftBinaryOperators(dynamic a, dynamic b)
+		{
+			DynamicTests.MemberAccess(a & b);
+			DynamicTests.MemberAccess(a & 1);
+			DynamicTests.MemberAccess(a & null);
+			DynamicTests.MemberAccess(a | b);
+			DynamicTests.MemberAccess(a | 1);
+			DynamicTests.MemberAccess(a | null);
+			DynamicTests.MemberAccess(a ^ b);
+			DynamicTests.MemberAccess(a ^ 1);
+			DynamicTests.MemberAccess(a ^ null);
+			DynamicTests.MemberAccess(a << b);
+			DynamicTests.MemberAccess(a << 1);
+			DynamicTests.MemberAccess(a >> b);
+			DynamicTests.MemberAccess(a >> 1);
+		}
+
 		private static void RelationalOperators(dynamic a, dynamic b)
 		{
 			DynamicTests.MemberAccess(a == b);
@@ -369,6 +386,12 @@ namespace ICSharpCode.Decompiler.Tests.TestCases.Pretty
 			a.Setter2 -= b;
 			a.Setter2 *= b;
 			a.Setter2 /= b;
+			a.Setter2 %= b;
+			a.Setter2 &= b;
+			a.Setter2 |= b;
+			a.Setter2 ^= b;
+			a.Setter2 <<= b;
+			a.Setter2 >>= b;
 			field.Setter += 5;
 			field.Setter -= 5;
 		}
@@ -394,6 +417,7 @@ namespace ICSharpCode.Decompiler.Tests.TestCases.Pretty
 			//++a;
 			DynamicTests.Casts(-a);
 			DynamicTests.Casts(+a);
+			DynamicTests.Casts(~a);
 		}
 
 		private static void Loops(dynamic list)
