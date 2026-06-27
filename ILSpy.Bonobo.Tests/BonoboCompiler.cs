@@ -9,8 +9,10 @@ namespace ILSpy.Bonobo.Tests
 		{
 			List<string> errorLogs = [];
 
-			using var process = new Process {
-				StartInfo = new ProcessStartInfo {
+			using Process process = new Process 
+			{
+				StartInfo = new ProcessStartInfo 
+				{
 					FileName = "dotnet",
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
@@ -23,14 +25,16 @@ namespace ILSpy.Bonobo.Tests
 			process.StartInfo.ArgumentList.Add(projectPath);
 			process.StartInfo.ArgumentList.Add("-clp:ErrorsOnly");
 
-			process.OutputDataReceived += (sender, e) => {
+			process.OutputDataReceived += (sender, e) => 
+			{
 				if (!string.IsNullOrWhiteSpace(e.Data))
 				{
 					errorLogs.Add(e.Data);
 				}
 			};
 
-			process.ErrorDataReceived += (sender, e) => {
+			process.ErrorDataReceived += (sender, e) => 
+			{
 				if (!string.IsNullOrWhiteSpace(e.Data))
 				{
 					errorLogs.Add(e.Data);
@@ -58,8 +62,10 @@ namespace ILSpy.Bonobo.Tests
 		{
 			CleanBuildFiles(projectPath);
 
-			using var process = new Process {
-				StartInfo = new ProcessStartInfo {
+			using Process process = new Process 
+			{
+				StartInfo = new ProcessStartInfo 
+				{
 					FileName = "dotnet",
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
@@ -138,18 +144,25 @@ namespace ILSpy.Bonobo.Tests
 				using (StreamReader reader = new StreamReader(projectPath, Encoding.UTF8))
 				using (StreamWriter writer = new StreamWriter(tempPath, false, encoding))
 				{
+					bool hasHitProjectReferences = false;
+
 					while ((line = reader.ReadLine()) != null)
 					{
-						if (line.Contains("<Reference"))
+						if (line.Contains("<Reference") && !line.Contains("ManagedBlam.dll"))
 						{
-							line = line
-								.Replace("..\\Dependencies", ekRoot)
-								.Replace("<!-- ", string.Empty)
-								.Replace(" -->", string.Empty);
+							if (!hasHitProjectReferences)
+							{
+								line = line
+									.Replace("..\\Dependencies", ekRoot)
+									.Replace("<!-- ", string.Empty)
+									.Replace(" -->", string.Empty);
+							}
 						}
 
 						if (line.Contains("<ProjectReference"))
 						{
+							hasHitProjectReferences = true;
+
 							line = $"    <!-- {line.Replace("    ", string.Empty)} -->";
 						}
 
@@ -181,18 +194,25 @@ namespace ILSpy.Bonobo.Tests
 				using (StreamReader reader = new StreamReader(projectPath, Encoding.UTF8))
 				using (StreamWriter writer = new StreamWriter(tempPath, false, encoding))
 				{
+					bool hasHitProjectReferences = false;
+
 					while ((line = reader.ReadLine()) != null)
 					{
 						if (line.Contains("<Reference") && line.Contains(ekRoot))
 						{
-							line = line
-								.Replace(ekRoot, "..\\Dependencies");
+							if (!hasHitProjectReferences)
+							{
+								line = line
+									.Replace(ekRoot, "..\\Dependencies");
 
-							line = $"    <!-- {line.Replace("    ", string.Empty)} -->";
+								line = $"    <!-- {line.Replace("    ", string.Empty)} -->";
+							}
 						}
 
 						if (line.Contains("<ProjectReference"))
 						{
+							hasHitProjectReferences = true;
+
 							line = line
 								.Replace("<!-- ", string.Empty)
 								.Replace(" -->", string.Empty);
