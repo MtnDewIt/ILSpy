@@ -1,11 +1,12 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace ICSharpCode.ILSpy.Commands.Bonobo.Extensions
 {
 	public static class DirectoryHelper
 	{
-		public static void CopyDirectory(string sourceDir, string destinationDir, Func<FileInfo, bool>? fileFilter = null) 
+		public static void CopyDirectory(string sourceDir, string destinationDir, Func<FileInfo, bool>? fileFilter = null)
 		{
 			var directoryInfo = new DirectoryInfo(sourceDir);
 
@@ -72,6 +73,36 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.Extensions
 			else
 			{
 				Directory.Move(sourceDirName, destinationPath);
+			}
+		}
+
+		public static void ReplaceLine(string sourceDirName, string oldValue, string newValue)
+		{
+			string tempPath = $"{Path.GetTempPath()}{Path.GetFileName(sourceDirName)}";
+
+			try
+			{
+				UTF8Encoding encoding = new UTF8Encoding(false);
+
+				string? line;
+
+				using (StreamReader reader = new StreamReader(sourceDirName, Encoding.UTF8))
+				using (StreamWriter writer = new StreamWriter(tempPath, false, encoding))
+				{
+					while ((line = reader.ReadLine()) != null)
+					{
+						writer.WriteLine(line.Replace(oldValue, newValue));
+					}
+				}
+
+				File.Move(tempPath, sourceDirName, true);
+			}
+			catch (Exception)
+			{
+				if (File.Exists(tempPath))
+				{
+					File.Delete(tempPath);
+				}
 			}
 		}
 	}

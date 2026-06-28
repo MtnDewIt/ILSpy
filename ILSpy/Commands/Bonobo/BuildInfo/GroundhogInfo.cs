@@ -242,6 +242,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			DirectoryHelper.MoveFiles($"{path}\\Bonobo\\AssetPlugin\\GenericResourceDictionary.xaml.cs", $"{path}\\Themes\\Generic.xaml.cs");
 
 			Directory.Delete($"{path}\\Bonobo", true);
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"AssetPlugin;component/AssetBrowser/Controls/",
+				$"AssetPlugin;component/Plugins/AssetBrowser/");
 		}
 
 		public static void CleanupBlamPlugin(string path)
@@ -378,6 +383,41 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			Directory.Delete($"{path}\\Corinth", true);
 			Directory.Delete($"{path}\\progressbars", true);
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"Corinth.Core.Wpf;component/ColorHexBox/",
+				$"Corinth.Core.Wpf;component/UI/Wpf/");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"Corinth.Core.Wpf;component/SearchBox/SearchBox.xaml",
+				$"Corinth.Core.Wpf;component/UI/Wpf/SearchBoxResourceDictionary.xaml");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"Corinth.Core.Wpf;component/SliderBox/",
+				$"Corinth.Core.Wpf;component/UI/Wpf/");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"Corinth.Core.Wpf;component/StatusLightExpander/",
+				$"Corinth.Core.Wpf;component/UI/Wpf/StatusLightExpander/");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"Corinth.Core.Wpf;component/ProgressBars/",
+				$"Corinth.Core.Wpf;component/UI/Wpf/");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\UI\\Wpf\\Icons\\TagFileColorMapping.xaml.cs",
+				$"/Corinth.Core.Wpf;component/Icons/",
+				$"/Corinth.Core.Wpf;component/UI/Wpf/Icons/");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\UI\\Wpf\\Icons\\TagFileIconMapping.xaml.cs",
+				$"/Corinth.Core.Wpf;component/Icons/",
+				$"/Corinth.Core.Wpf;component/UI/Wpf/Icons/");
 		}
 
 		public static void CleanupCorinthPerforce(string path)
@@ -428,6 +468,16 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			Directory.CreateDirectory($"{path}\\GuiPlugin\\GuiDesigner\\Themes");
 			DirectoryHelper.MoveFiles($"{path}\\GuiPlugin\\GuiDesigner\\GenericResourceDictionary.xaml", $"{path}\\GuiPlugin\\GuiDesigner\\Themes\\Generic.xaml");
 			DirectoryHelper.MoveFiles($"{path}\\GuiPlugin\\GuiDesigner\\GenericResourceDictionary.xaml.cs", $"{path}\\GuiPlugin\\GuiDesigner\\Themes\\Generic.xaml.cs");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\Themes\\Generic.xaml",
+				$"GuiPlugin;component/GuiDesigner/Themes/",
+				$"GuiPlugin;component/GuiPlugin/GuiDesigner/Themes/");
+
+			DirectoryHelper.ReplaceLine(
+				$"{path}\\GuiDesigner\\Themes\\Generic.xaml",
+				$"GuiPlugin;component/GuiDesigner/Themes/Resources/",
+				$"GuiPlugin;component/Plugins/GuiDesigner/");
 		}
 
 		public static void CleanupLibrarianPlugin(string path)
