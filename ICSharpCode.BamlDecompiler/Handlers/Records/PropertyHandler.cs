@@ -20,6 +20,7 @@
 	THE SOFTWARE.
 */
 
+using System.Linq;
 using System.Xml.Linq;
 
 using ICSharpCode.BamlDecompiler.Baml;
@@ -49,8 +50,18 @@ namespace ICSharpCode.BamlDecompiler.Handlers
 				if (xamlProp.IsAttachedTo(elemType))
 					return new XAttribute(xamlProp.ToXName(ctx, parent.Xaml, true), value);
 
-				if (xamlProp.PropertyName == "Name" && elemType.ResolvedType.GetDefinition()?.ParentModule.IsMainModule == true)
+				if (xamlProp.PropertyName == "Name" && elemType?.ResolvedType.GetDefinition()?.ParentModule.IsMainModule == true)
+				{
+					var resolvedTypeDef = elemType.ResolvedType.GetDefinition();
+
+					bool typeOwnsNameProperty = resolvedTypeDef != null
+						&& resolvedTypeDef.GetProperties(p => p.Name == "Name" && p.DeclaringTypeDefinition.FullName == resolvedTypeDef.FullName).Any();
+
+					if (typeOwnsNameProperty)
+						return new XAttribute("Name", value);
+
 					return new XAttribute(ctx.GetKnownNamespace("Name", XamlContext.KnownNamespace_Xaml), value);
+				}
 
 				return new XAttribute(xamlProp.ToXName(ctx, parent.Xaml, false), value);
 			}
