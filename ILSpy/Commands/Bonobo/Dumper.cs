@@ -276,6 +276,9 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				case "BonoboConsole":
 					sb.AppendLine($"{solutionIndent}{solutionIndent}<StartupObject>BonoboConsole.Program</StartupObject>");
 					break;
+				case "ProjectChooser":
+					sb.AppendLine($"{solutionIndent}{solutionIndent}<StartupObject>ProjectChooser.Program</StartupObject>");
+					break;
 			}
 
 			if (projectTypes.Any(x => x == ProjectType.Wpf))

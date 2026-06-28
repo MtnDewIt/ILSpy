@@ -45,7 +45,8 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 			if (typeDef == null || !typeDef.ParentModule.IsMainModule)
 				return;
 
-			var newType = typeDef.DirectBaseTypes.First().GetDefinition();
+			var directBaseType = typeDef.DirectBaseTypes.First();
+			var newType = directBaseType.GetDefinition();
 			if (newType == null)
 				return;
 			var xamlType = new XamlType(newType.ParentModule, newType.ParentModule.FullAssemblyName, newType.Namespace, newType.Name);
@@ -56,6 +57,22 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 			var attrName = ctx.GetKnownNamespace("Class", XamlContext.KnownNamespace_Xaml, elem);
 
 			var attrs = elem.Attributes().ToList();
+			if (newType.TypeParameters.Count > 0)
+			{
+				var typeArgumentsName = ctx.GetKnownNamespace("TypeArguments", XamlContext.KnownNamespace_Xaml, elem);
+				var typeArgs = directBaseType.TypeArguments;
+				var typeArgNames = typeArgs.Select(typeArg =>
+				{
+					var typeArgDef = typeArg.GetDefinition();
+					if (typeArgDef != null)
+					{
+						var xamlTypeArg = new XamlType(typeArgDef.ParentModule, typeArgDef.ParentModule.FullAssemblyName, typeArgDef.Namespace, typeArgDef.Name);
+						return ctx.ToString(elem, xamlTypeArg);
+					}
+					return typeArg.FullName;
+				});
+				attrs.Insert(0, new XAttribute(typeArgumentsName, string.Join(", ", typeArgNames)));
+			}
 			if (typeDef.Accessibility != ICSharpCode.Decompiler.TypeSystem.Accessibility.Public)
 			{
 				var classModifierName = ctx.GetKnownNamespace("ClassModifier", XamlContext.KnownNamespace_Xaml, elem);

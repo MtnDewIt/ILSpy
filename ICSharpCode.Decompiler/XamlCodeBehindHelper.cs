@@ -38,14 +38,23 @@ namespace ICSharpCode.Decompiler
 		{
 			if (typeDefinition == null)
 				return false;
+
+			if (typeDefinition.Methods.Any(IsGeneratedMainMethod))
+				return true;
+
 			if (typeDefinition.Methods.Any(IsGeneratedInitializeComponent))
 				return true;
+
 			var connector = typeDefinition.Compilation.FindType(componentConnectorTypeName).GetDefinition();
+
 			if (connector == null)
 				return false;
+
 			var connect = connector.GetMethods(m => m.Name == "Connect").SingleOrDefault();
+
 			if (connect == null)
 				return false;
+
 			return typeDefinition.Methods.Any(m => m.ExplicitlyImplementedInterfaceMembers.Any(md => md.MemberDefinition.Equals(connect)));
 		}
 

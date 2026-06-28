@@ -12,6 +12,9 @@ namespace ILSpy.Bonobo.Tests
 		{
 			Dictionary<BuildType, string> builds = RegistryHandler.FindEKPaths();
 
+			int totalProjectCount = 0;
+			int totalSuccessCount = 0;
+
 			foreach (var build in builds)
 			{
 				Context = new DumperContext(build.Key, build.Value);
@@ -22,6 +25,8 @@ namespace ILSpy.Bonobo.Tests
 				{
 					continue;
 				}
+
+				totalProjectCount += Context?.Projects.Length ?? 0;
 
 				if (Context?.Build != BuildType.Forerunner && Context?.Build != BuildType.Atlas)
 				{
@@ -56,11 +61,17 @@ namespace ILSpy.Bonobo.Tests
 						BonoboCompiler.CleanupProjectFile(projectPath, build.Value);
 					}
 
+					totalSuccessCount += successCount;
+
 					double? successRate = Context?.Projects.Length > 0 ? (double)successCount / Context?.Projects.Length : 0.0;
 
 					Console.WriteLine($"{successCount}/{Context?.Projects.Length} BUILT - {successRate:P0} SUCCESS RATE\n");
 				}
 			}
+
+			double? totalSuccessRate = totalProjectCount > 0 ? (double)totalSuccessCount / totalProjectCount : 0.0;
+
+			Console.WriteLine($"{totalSuccessCount}/{totalProjectCount} BUILT - {totalSuccessRate:P0} TOTAL SUCCESS RATE\n");
 		}
 	}
 }
