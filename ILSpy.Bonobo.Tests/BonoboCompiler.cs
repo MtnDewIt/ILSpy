@@ -148,7 +148,7 @@ namespace ILSpy.Bonobo.Tests
 
 					while ((line = reader.ReadLine()) != null)
 					{
-						if (line.Contains("<Reference") && !line.Contains("ManagedBlam.dll"))
+						if (line.Contains("<Reference") && !line.Contains("\\bin\\ManagedBlam.dll"))
 						{
 							if (!hasHitProjectReferences && (Program.Context?.ExternalRelativePaths.All(x => !line.Contains(x)) ?? false))
 							{

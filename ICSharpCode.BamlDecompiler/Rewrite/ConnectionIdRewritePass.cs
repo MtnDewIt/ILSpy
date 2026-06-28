@@ -80,6 +80,9 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 					{
 						string xmlns = ""; // TODO : implement xmlns resolver!
 						var type = element.Annotation<XamlType>();
+						if (type == null && element.Annotation<XamlProperty>() != null)
+							type = element.Parent?.Annotation<XamlType>();
+						
 						if (type?.TypeNamespace + "." + type?.TypeName == "System.Windows.Style")
 						{
 							element.Add(new XElement(type.Namespace + "EventSetter",
