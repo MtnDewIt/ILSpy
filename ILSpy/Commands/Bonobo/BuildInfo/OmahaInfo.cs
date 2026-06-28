@@ -242,8 +242,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.ReplaceLine(
 				$"{path}\\Themes\\Generic.xaml",
-				$"AssetPlugin;component/AssetBrowser/Controls/",
-				$"AssetPlugin;component/Plugins/AssetBrowser/");
+				$"AssetPlugin;Component/AssetBrowser/Controls/",
+				$"AssetPlugin;Component/Plugins/AssetBrowser/");
 		}
 
 		public static void CleanupBlamPlugin(string path)
@@ -450,13 +450,13 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 
 			DirectoryHelper.ReplaceLine(
 				$"{path}\\Themes\\Generic.xaml",
-				$"GuiPlugin;component/GuiDesigner/Themes/",
-				$"GuiPlugin;component/GuiPlugin/GuiDesigner/Themes/");
+				$"GuiPlugin;Component/GuiDesigner/Themes/",
+				$"GuiPlugin;Component/GuiPlugin/GuiDesigner/Themes/");
 
 			DirectoryHelper.ReplaceLine(
-				$"{path}\\GuiDesigner\\Themes\\Generic.xaml",
-				$"GuiPlugin;component/GuiDesigner/Themes/Resources/",
-				$"GuiPlugin;component/Plugins/GuiDesigner/");
+				$"{path}\\GuiPlugin\\GuiDesigner\\Themes\\Generic.xaml",
+				$"GuiPlugin;Component/GuiDesigner/Themes/Resources/",
+				$"GuiPlugin;Component/Plugins/GuiDesigner/");
 		}
 
 		public static void CleanupLibrarianPlugin(string path)
