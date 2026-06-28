@@ -867,6 +867,13 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 					writer.WriteAttributeString("x", "ClassModifier", "http://schemas.microsoft.com/winfx/2006/xaml", "internal");
 				}
 
+				var startupEventHandler = TryGetStartupEventHandler(metadata, typeDef);
+
+				if (startupEventHandler != null)
+				{
+					writer.WriteAttributeString("Startup", startupEventHandler);
+				}
+
 				if (isStartupClass)
 				{
 					var startupUri = TryGetStartupUri(peFile, metadata, typeDef);
@@ -884,6 +891,26 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 				writer.WriteEndElement();
 				writer.WriteEndDocument();
 			}
+		}
+
+		/// <summary>
+		/// Scans the methods of a type for methods ending with <c>_Startup</c>,
+		/// which indicate a WPF Application.Startup event handler.
+		/// </summary>
+		static string TryGetStartupEventHandler(MetadataReader metadata, TypeDefinition typeDef)
+		{
+			foreach (var methodHandle in typeDef.GetMethods())
+			{
+				var method = metadata.GetMethodDefinition(methodHandle);
+				string methodName = metadata.GetString(method.Name);
+
+				if (methodName.EndsWith("_Startup", StringComparison.Ordinal))
+				{
+					return methodName;
+				}
+			}
+
+			return null;
 		}
 
 		static bool IsNonPublic(TypeAttributes attributes)
