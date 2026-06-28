@@ -840,7 +840,7 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 					var methodDef = metadata.GetMethodDefinition((MethodDefinitionHandle)entryPointHandle);
 					var declaringType = methodDef.GetDeclaringType();
 
-					return declaringType == typeHandle;
+					return declaringType.GetType() == typeHandle.GetType();
 				}
 			}
 
@@ -867,15 +867,15 @@ namespace ICSharpCode.Decompiler.CSharp.ProjectDecompiler
 					writer.WriteAttributeString("x", "ClassModifier", "http://schemas.microsoft.com/winfx/2006/xaml", "internal");
 				}
 
-				var startupEventHandler = TryGetStartupEventHandler(metadata, typeDef);
-
-				if (startupEventHandler != null)
-				{
-					writer.WriteAttributeString("Startup", startupEventHandler);
-				}
-
 				if (isStartupClass)
 				{
+					var startupEventHandler = TryGetStartupEventHandler(metadata, typeDef);
+
+					if (startupEventHandler != null)
+					{
+						writer.WriteAttributeString("Startup", startupEventHandler);
+					}
+
 					var startupUri = TryGetStartupUri(peFile, metadata, typeDef);
 
 					if (startupUri != null)
