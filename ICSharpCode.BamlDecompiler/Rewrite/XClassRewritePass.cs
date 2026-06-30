@@ -49,6 +49,13 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 			var newType = directBaseType.GetDefinition();
 			if (newType == null)
 				return;
+
+			if (newType.FullName == "System.Object")
+			{
+				ctx.XClassNames.Add(type.ResolvedType.FullName);
+				return;
+			}
+
 			var xamlType = new XamlType(newType.ParentModule, newType.ParentModule.FullAssemblyName, newType.Namespace, newType.Name);
 			xamlType.ResolveNamespace(elem, ctx);
 
