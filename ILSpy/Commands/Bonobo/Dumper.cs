@@ -334,6 +334,18 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					references.Add("Bonobo");
 				}
 
+				// Account for the fact that reach BlamPlugin contains an explicit reference to PresentationFramework.Classic
+				if (build == BuildType.Omaha && string.Equals(project, "BlamPlugin") && !externalDependencies.Contains("PresentationFramework.Classic"))
+				{
+					externalDependencies.Add("PresentationFramework.Classic");
+				}
+
+				// Account for the fact that reach LibrarianPlugin contains an explicit reference to WPFToolKit
+				if (build == BuildType.Omaha && string.Equals(project, "LibrarianPlugin") && !internalDependencies.Contains("bin\\tools\\bonobo\\WPFToolkit.dll"))
+				{
+					internalDependencies.Add("bin\\tools\\bonobo\\WPFToolkit.dll");
+				}
+
 				if (Context?.Projects.Any(x => x.Contains(reference.Name)) ?? false)
 				{
 					string? projectName = Context?.Projects.Where(x => x.StartsWith(reference.Name)).FirstOrDefault();
@@ -369,6 +381,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 					string dependencyPath = string.Empty;
 
+					// Hack fix for the fact that reach bonobo is missing dependencies
 					if (build == BuildType.Omaha && (dependencyName?.Contains("Microsoft.WindowsAPICodePack") ?? false))
 					{
 						string midnightPath = RegistryHandler.FindEKPaths().Where(x => x.Key == BuildType.Midnight).FirstOrDefault().Value;

@@ -123,7 +123,7 @@ namespace ICSharpCode.BamlDecompiler.Handlers
 						return sb.ToString().Trim();
 					}
 
-					case KnownTypes.XamlInt32CollectionSerializer:
+				case KnownTypes.XamlInt32CollectionSerializer:
 					{
 						var sb = new StringBuilder();
 						var type = (IntegerCollectionType)reader.ReadByte();
@@ -135,25 +135,25 @@ namespace ICSharpCode.BamlDecompiler.Handlers
 							{
 								var start = reader.ReadInt32();
 								for (int i = 0; i < count; i++)
-									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D}", start + i);
+									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D} ", start + i);
 							}
 							break;
 							case IntegerCollectionType.U1:
 							{
 								for (int i = 0; i < count; i++)
-									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D}", reader.ReadByte());
+									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D} ", reader.ReadByte());
 							}
 							break;
 							case IntegerCollectionType.U2:
 							{
 								for (int i = 0; i < count; i++)
-									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D}", reader.ReadUInt16());
+									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D} ", reader.ReadUInt16());
 							}
 							break;
 							case IntegerCollectionType.I4:
 							{
 								for (int i = 0; i < count; i++)
-									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D}", reader.ReadInt32());
+									sb.AppendFormat(CultureInfo.InvariantCulture, "{0:D} ", reader.ReadInt32());
 							}
 							break;
 							default:
