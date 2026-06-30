@@ -85,9 +85,18 @@ namespace ICSharpCode.BamlDecompiler.Rewrite
 						
 						if (type?.TypeNamespace + "." + type?.TypeName == "System.Windows.Style")
 						{
-							element.Add(new XElement(type.Namespace + "EventSetter",
+							var newEventSetter = new XElement(type.Namespace + "EventSetter",
 								new XAttribute("Event", entry.EventName),
-								new XAttribute("Handler", entry.MethodName)));
+								new XAttribute("Handler", entry.MethodName));
+
+							var triggersElem = element.Elements()
+								.FirstOrDefault(e => e.Name.LocalName.EndsWith(".Triggers",
+									StringComparison.OrdinalIgnoreCase));
+
+							if (triggersElem != null)
+								triggersElem.AddBeforeSelf(newEventSetter);
+							else
+								element.Add(newEventSetter);
 						}
 						else
 						{
