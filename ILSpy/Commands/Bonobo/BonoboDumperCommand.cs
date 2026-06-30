@@ -49,7 +49,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					continue;
 				}
 
-				Dump();
+				Dump(build.Key);
 
 				Clear();
 			}
@@ -60,23 +60,23 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			dumper = null;
 		}
 
-		public void Dump() 
+		public void Dump(BuildType build) 
 		{
 			if (dumper?.Context?.Build != BuildType.Forerunner && dumper?.Context?.Build != BuildType.Atlas)
 			{
-				DumpBonobo();
+				DumpBonobo(build);
 			}
 
 			DumpManaged();
 		}
 
-		public void DumpBonobo() 
+		public void DumpBonobo(BuildType build) 
 		{
 			dumper?.Context?.ValidateBonoboTempPath();
 			dumper?.Context?.ValidateBonoboDumpPath();
 			dumper?.Context?.ValidateBonoboOutputPath();
 
-			CopyAssembliesToTemp();
+			CopyAssembliesToTemp(build);
 
 			for (int projectIndex = 0; projectIndex < dumper?.Context?.Projects?.Length; projectIndex++)
 			{
@@ -116,8 +116,20 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			for (int dependencyIndex = 0; dependencyIndex < dependencies.Count; dependencyIndex++)
 			{
-				string source = $"{dumper?.Context?.BonoboPath}\\{dependencies[dependencyIndex]}";
+				string source = string.Empty;
 				string destination = $"{dumper?.Context?.BonoboProjectDependenciesPath}\\{dependencies[dependencyIndex]}";
+
+				// Hack fix for the fact that reach bonobo is missing dependencies
+				if (build == BuildType.Omaha && dependencies[dependencyIndex].Contains("Microsoft.WindowsAPICodePack"))
+				{
+					string midnightPath = RegistryHandler.FindEKPaths().Where(x => x.Key == BuildType.Midnight).FirstOrDefault().Value;
+
+					source = $"{midnightPath}\\{dependencies[dependencyIndex]}";
+				}
+				else
+				{
+					source = $"{dumper?.Context?.BonoboPath}\\{dependencies[dependencyIndex]}";
+				}
 
 				string? directory = Path.GetDirectoryName(destination);
 
@@ -159,7 +171,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			dumper?.Clear();
 		}
 
-		public void CopyAssembliesToTemp() 
+		public void CopyAssembliesToTemp(BuildType build) 
 		{
 			for (int dependencyIndex = 0; dependencyIndex < dumper?.Context?.RelativePaths?.Length; dependencyIndex++)
 			{
@@ -179,7 +191,20 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 
 			for (int externalDependencyIndex = 0; externalDependencyIndex < dumper?.Context?.ExternalRelativePaths?.Length; externalDependencyIndex++)
 			{
-				string externalDependencyPath = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.ExternalRelativePaths[externalDependencyIndex]}";
+				string externalDependencyPath = string.Empty;
+
+				// Hack fix for the fact that reach bonobo is missing dependencies
+				if (build == BuildType.Omaha && (dumper?.Context?.ExternalRelativePaths[externalDependencyIndex].Contains("Microsoft.WindowsAPICodePack") ?? false))
+				{
+					string midnightPath = RegistryHandler.FindEKPaths().Where(x => x.Key == BuildType.Midnight).FirstOrDefault().Value;
+
+					externalDependencyPath = $"{midnightPath}\\{dumper?.Context?.ExternalRelativePaths[externalDependencyIndex]}";
+				}
+				else
+				{
+					externalDependencyPath = $"{dumper?.Context?.BonoboPath}\\{dumper?.Context?.ExternalRelativePaths[externalDependencyIndex]}";
+				}
+
 				string tempPath = $"{dumper?.Context?.BonoboProjectTempPath}\\{Path.GetFileName(dumper?.Context?.ExternalRelativePaths[externalDependencyIndex])}";
 
 				File.Copy(externalDependencyPath, tempPath, true);

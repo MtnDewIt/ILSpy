@@ -89,6 +89,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo.BuildInfo
 			$"bin\\tools\\bonobo\\Interop.WMPLib.dll",
 			$"bin\\tools\\bonobo\\Microsoft.Practices.Composite.dll",
 			$"bin\\tools\\bonobo\\Microsoft.Practices.Composite.Presentation.dll",
+			$"bin\\tools\\bonobo\\Microsoft.WindowsAPICodePack.dll",
+			$"bin\\tools\\bonobo\\Microsoft.WindowsAPICodePack.Shell.dll",
 			$"bin\\tools\\bonobo\\sqlceca35.dll",
 			$"bin\\tools\\bonobo\\sqlcecompact35.dll",
 			$"bin\\tools\\bonobo\\sqlceer35EN.dll",

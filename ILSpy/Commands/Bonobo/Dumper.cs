@@ -24,6 +24,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		public DockWorkspace? DockWorkspace;
 		public DumperContext? Context;
 
+		static BuildType build;
+
 		static DecompilationOptions? decompilationOptions;
 		static MetadataFile? metadataFile;
 
@@ -86,6 +88,7 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				return false;
 			}
 
+			build = buildType;
 			platform = Context.Platform.ToString();
 
 			AssemblyInfoGenerator = new AssemblyInfoGenerator(Context);
@@ -364,7 +367,18 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 				{
 					string? dependencyName = Context?.ExternalRelativePaths.Where(x => x.Contains($"{reference.Name}.dll")).FirstOrDefault();
 
-					string dependencyPath = $"{Context?.BonoboPath}\\{dependencyName}";
+					string dependencyPath = string.Empty;
+
+					if (build == BuildType.Omaha && (dependencyName?.Contains("Microsoft.WindowsAPICodePack") ?? false))
+					{
+						string midnightPath = RegistryHandler.FindEKPaths().Where(x => x.Key == BuildType.Midnight).FirstOrDefault().Value;
+
+						dependencyPath = $"{midnightPath}\\{dependencyName}";
+					}
+					else
+					{
+						dependencyPath = $"{Context?.BonoboPath}\\{dependencyName}";
+					}
 
 					AssemblyTreeModel?.OpenFiles([dependencyPath]);
 					var loadedAssembly = AssemblyTreeModel?.AssemblyList?.FindAssembly(dependencyPath);
