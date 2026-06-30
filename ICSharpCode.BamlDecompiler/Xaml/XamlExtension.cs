@@ -57,6 +57,26 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 			else
 				sb.Append(typeName);
 
+			void WriteSafeValue(object value)
+			{
+				var tempSb = new StringBuilder();
+				WriteObject(tempSb, ctx, ctxElement, value);
+				string valStr = tempSb.ToString();
+				string trimmed = valStr.TrimStart();
+
+				if (trimmed.Contains(",") &&
+					!trimmed.StartsWith("{") &&
+					!trimmed.StartsWith("'") &&
+					!trimmed.StartsWith("\""))
+				{
+					sb.Append('\'').Append(valStr).Append('\'');
+				}
+				else
+				{
+					sb.Append(valStr);
+				}
+			}
+
 			bool comma = false;
 			if (Initializer != null && Initializer.Length > 0)
 			{
@@ -65,7 +85,8 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 				{
 					if (comma)
 						sb.Append(", ");
-					WriteObject(sb, ctx, ctxElement, Initializer[i]);
+
+					WriteSafeValue(Initializer[i]);
 					comma = true;
 				}
 			}
@@ -82,7 +103,8 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 						comma = true;
 					}
 					sb.AppendFormat("{0}=", kvp.Key);
-					WriteObject(sb, ctx, ctxElement, kvp.Value);
+
+					WriteSafeValue(kvp.Value);
 				}
 			}
 
