@@ -13,7 +13,7 @@ namespace ILSpy.Bonobo.Tests
 			{
 				StartInfo = new ProcessStartInfo 
 				{
-					FileName = "dotnet",
+					FileName = "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
 					UseShellExecute = false,
@@ -21,9 +21,13 @@ namespace ILSpy.Bonobo.Tests
 				}
 			};
 
-			process.StartInfo.ArgumentList.Add("build");
-			process.StartInfo.ArgumentList.Add(projectPath);
-			process.StartInfo.ArgumentList.Add("-clp:ErrorsOnly");
+			process.StartInfo.ArgumentList.Add(projectPath.Replace(".csproj", ".slnx"));
+			process.StartInfo.ArgumentList.Add("/restore");
+			process.StartInfo.ArgumentList.Add("/p:Configuration=Debug");
+			process.StartInfo.ArgumentList.Add("/p:Platform=x64");
+			process.StartInfo.ArgumentList.Add("/nologo");
+			process.StartInfo.ArgumentList.Add("/v:q");
+			process.StartInfo.ArgumentList.Add("/clp:ErrorsOnly");
 
 			process.OutputDataReceived += (sender, e) => 
 			{

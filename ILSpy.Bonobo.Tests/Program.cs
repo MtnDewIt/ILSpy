@@ -44,7 +44,7 @@ namespace ILSpy.Bonobo.Tests
 
 						List<string> errors = await BonoboCompiler.BuildAndLogErrorsAsync(projectPath);
 
-						bool failed = errors.Any(e => e.Contains("Build FAILED."));
+						bool failed = errors.Count > 0;
 
 						if (!failed)
 						{

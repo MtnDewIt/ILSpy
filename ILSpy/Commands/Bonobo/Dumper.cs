@@ -401,10 +401,10 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 					{
 						if ((Context?.ExternalRelativePaths.Any(x => x.Contains($"{dependency.Name}.dll")) ?? false) && (Context?.Projects.All(x => !x.Contains(dependency.Name)) ?? false))
 						{
-							string? name = Context?.ExternalRelativePaths?.Where(x => x.Contains($"{dependency.Name}.dll")).FirstOrDefault();
+							string? name = Context?.ExternalRelativePaths?.Where(x => x.Contains($"{dependency.Name}.dll")).FirstOrDefault() ?? string.Empty;
 
-							// System.CoreEx is never explicitly referenced in any project, so we don't need to include it
-							if (!string.IsNullOrEmpty(name) && !internalDependencies.Contains(name) && !name.Contains("System.CoreEx"))
+							// System.CoreEx is never explicitly referenced in any project, so we don't need to include it (outside of Bungie.Core in Omaha)
+							if (!string.IsNullOrEmpty(name) && !internalDependencies.Contains(name) && !name.Contains("System.CoreEx") || (string.Equals(project, "Bungie.Core") && build == BuildType.Omaha))
 							{
 								internalDependencies.Add(name);
 							}
