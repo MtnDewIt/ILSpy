@@ -236,67 +236,51 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				var rr = invocation.GetResolveResult();
 				if (rr is MemberResolveResult mrr && stubbedMemberSymbols.Contains(mrr.Member))
 				{
-					// Replace the invocation expression with a comment
-					string renderedText = RenderNodeToString(invocation);
-					if (!string.IsNullOrWhiteSpace(renderedText))
+					// Find the containing statement and replace it with a comment in-place
+					Statement? stmt = invocation.GetParent<Statement>();
+					if (stmt != null)
 					{
-						var commentText = BuildCommentedLines(renderedText, GetNodeIndent(invocation));
-						var comment = new Comment(commentText, CommentType.SingleLine);
-
-						// Replace the statement containing this invocation with a comment
-						Statement? stmt = invocation.GetParent<Statement>();
-						if (stmt != null)
-						{
-							ReplaceStatementWithComment(stmt, comment);
-						}
-						else
-						{
-							// Fallback: just comment out the expression
-							CommentOutNode(invocation);
-						}
+						ReplaceStatementWithComment(stmt);
+					}
+					else
+					{
+						// Fallback: just comment out the expression
+						CommentOutNode(invocation);
 					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// Gets the indentation level (in spaces) of the given node based on its start location.
+		/// Replaces the given statement with a commented-out version of itself.
+		/// The comment stays in the correct position within the block.
 		/// </summary>
-		static string GetNodeIndent(AstNode node)
-		{
-			int column = node.StartLocation.Column;
-			// Column is 1-based, convert to 0-based indent
-			int indent = Math.Max(0, column - 1);
-			return new string(' ', indent);
-		}
-
-		static void ReplaceStatementWithComment(Statement stmt, Comment comment)
+		static void ReplaceStatementWithComment(Statement stmt)
 		{
 			string renderedText = RenderNodeToString(stmt);
 			if (string.IsNullOrWhiteSpace(renderedText))
 				return;
 
-			var indent = GetNodeIndent(stmt);
-			var commentText = BuildCommentedLines(renderedText, indent);
-			var blockComment = new Comment(commentText, CommentType.SingleLine);
+			var commentTrivia = CreateCommentTrivia(renderedText);
 
-			AstNode? nextSibling = stmt.NextSibling;
-			if (nextSibling != null)
-			{
-				nextSibling.AddLeadingTrivia(blockComment);
-			}
-			else if (stmt.PrevSibling != null)
-			{
-				stmt.PrevSibling.AddTrailingTrivia(blockComment);
-			}
-			else if (stmt.Parent != null)
-			{
-				stmt.Parent.AddTrailingTrivia(blockComment);
-			}
-
-			stmt.Remove();
+			var emptyStmt = new EmptyStatement();
+			foreach (var trivia in commentTrivia)
+				emptyStmt.AddTrailingTrivia(trivia);
+			stmt.ReplaceWith(emptyStmt);
 		}
 
+		/// <summary>
+		/// Comments out an EntityDeclaration (method, field, property, event, delegate, type)
+		/// by removing it from the AST and attaching the commented-out text as a multi-line
+		/// block comment to a sibling node.
+		/// 
+		/// The output visitor renders CommentType.MultiLine as:
+		///   {WriteIndentation()}/*{content}*/
+		/// 
+		/// So we include leading/trailing newlines and indentation in the content
+		/// to place /* and */ on their own lines at the correct nesting level.
+		/// Blank lines are added only between siblings, never at the end of a block.
+		/// </summary>
 		static void CommentOutNode(AstNode node)
 		{
 			string renderedText = RenderNodeToString(node);
@@ -304,11 +288,33 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			if (string.IsNullOrWhiteSpace(renderedText))
 				return;
 
-			var indent = GetNodeIndent(node);
-			var commentText = BuildCommentedLines(renderedText, indent);
+			bool hasPrevSibling = node.PrevSibling != null;
+			bool hasNextSibling = node.NextSibling != null;
 
-			var comment = new Comment(commentText, CommentType.SingleLine);
+			// Compute indent based on AST nesting depth
+			int depth = 0;
+			AstNode? current = node.Parent;
+			while (current != null)
+			{
+				if (current is TypeDeclaration || current is NamespaceDeclaration || current is BlockStatement)
+					depth++;
+				current = current.Parent;
+			}
+			string indent = new string('\t', depth);
 
+			// Build content: [\n]<code>\n<indent>[\n]
+			var sb = new System.Text.StringBuilder();
+			if (hasPrevSibling)
+				sb.Append('\n');
+			sb.Append(renderedText);
+			sb.Append('\n');
+			sb.Append(indent);
+			if (hasNextSibling)
+				sb.Append('\n');
+
+			var comment = new Comment(sb.ToString(), CommentType.MultiLine);
+
+			// Attach the comment to a sibling, then remove the node.
 			AstNode? nextSibling = node.NextSibling;
 			if (nextSibling != null)
 			{
@@ -326,19 +332,21 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			node.Remove();
 		}
 
-		static string BuildCommentedLines(string text, string indent)
+		/// <summary>
+		/// Creates Comment trivia for each line of the rendered text.
+		/// Leading whitespace is stripped because the output visitor adds its
+		/// own indentation via <c>WriteIndentation()</c>, and the <c>//</c>
+		/// prefix is also added by the visitor.
+		/// </summary>
+		static List<Trivia> CreateCommentTrivia(string renderedText)
 		{
-			var lines = text.Replace("\r\n", "\n").Split('\n');
-			var sb = new System.Text.StringBuilder();
-			for (int i = 0; i < lines.Length; i++)
+			var lines = renderedText.Replace("\r\n", "\n").Split('\n');
+			var trivia = new List<Trivia>(lines.Length);
+			foreach (var line in lines)
 			{
-				if (i > 0)
-					sb.Append('\n');
-				sb.Append(indent);
-				sb.Append("//");
-				sb.Append(lines[i]);
+				trivia.Add(new Comment(line.TrimStart(), CommentType.SingleLine));
 			}
-			return sb.ToString();
+			return trivia;
 		}
 
 		static string RenderNodeToString(AstNode node)
