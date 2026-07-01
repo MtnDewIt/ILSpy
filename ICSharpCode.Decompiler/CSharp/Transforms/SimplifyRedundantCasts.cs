@@ -41,7 +41,10 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				&& castExpression.Type.GetResolveResult()?.Type is IType targetType
 				&& targetType.IsReferenceType != false)
 			{
-				castExpression.ReplaceWith(new NullReferenceExpression().CopyAnnotationsFrom(castExpression));
+				if (castExpression.Annotation<OverloadDisambiguationAnnotation>() == null)
+				{
+					castExpression.ReplaceWith(new NullReferenceExpression().CopyAnnotationsFrom(castExpression));
+				}
 				return;
 			}
 
@@ -92,5 +95,16 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 				this.context = null;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Marks a cast expression as necessary for C# overload disambiguation.
+	/// When two or more overloads share the same name and parameter count but differ
+	/// in parameter types, a null literal argument needs an explicit cast to resolve
+	/// the ambiguity. This annotation prevents the cast from being simplified away.
+	/// </summary>
+	public class OverloadDisambiguationAnnotation
+	{
+		internal static readonly OverloadDisambiguationAnnotation Instance = new();
 	}
 }

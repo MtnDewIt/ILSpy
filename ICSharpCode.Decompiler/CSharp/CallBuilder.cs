@@ -548,6 +548,10 @@ namespace ICSharpCode.Decompiler.CSharp
 				}
 			}
 
+			// When a null literal argument would be ambiguous between overloads with the same
+			// name and parameter count, insert explicit casts so the decompiled C# compiles.
+			CastNullArgumentsForCSharpDisambiguation(method, foundMethod, ref argumentList);
+
 			Expression targetExpr;
 			string methodName = method.Name;
 			AstNodeCollection<AstType> typeArgumentList;
@@ -1376,6 +1380,75 @@ namespace ICSharpCode.Decompiler.CSharp
 				argumentList.Arguments.SelectReadOnlyArray(a => a.ResolveResult), paramTypesInArgumentOrder,
 				out bool success);
 			return success;
+		}
+
+		/// <summary>
+		/// When the called method has overloads with the same name and parameter count
+		/// but different parameter types, null literal arguments must carry explicit
+		/// casts so the decompiled C# is unambiguous.
+		/// </summary>
+		private void CastNullArgumentsForCSharpDisambiguation(IMethod method, IParameterizedMember? foundMember, ref ArgumentList argumentList)
+		{
+			if (method.IsOperator || method.IsAccessor)
+				return;
+
+			var declaringType = method.DeclaringTypeDefinition
+				?? method.DeclaringType.GetDefinition();
+			if (declaringType == null)
+				return;
+
+			var methodToCheck = foundMember ?? method;
+
+			var overloads = new List<IMethod>();
+			foreach (var m in declaringType.Methods)
+			{
+				if (m.Name != method.Name)
+					continue;
+				if (m.Parameters.Count != methodToCheck.Parameters.Count)
+					continue;
+				overloads.Add(m);
+			}
+
+			if (overloads.Count <= 1)
+				return;
+
+			for (int paramIndex = 0; paramIndex < methodToCheck.Parameters.Count; paramIndex++)
+			{
+				if (paramIndex >= argumentList.Arguments.Length)
+					break;
+
+				var thisParamType = methodToCheck.Parameters[paramIndex].Type;
+
+				bool needsCast = false;
+				foreach (var other in overloads)
+				{
+					if (other.Equals(methodToCheck))
+						continue;
+					var otherParamType = other.Parameters[paramIndex].Type;
+					if (!NormalizeTypeVisitor.TypeErasure.EquivalentTypes(thisParamType, otherParamType)
+						&& otherParamType.IsReferenceType != false)
+					{
+						needsCast = true;
+						break;
+					}
+				}
+
+				if (!needsCast)
+					continue;
+
+				var arg = argumentList.Arguments[paramIndex];
+				if (arg.Expression is NullReferenceExpression
+					|| (arg.Expression is CastExpression ce && ce.Expression is NullReferenceExpression))
+				{
+					var converted = arg.ConvertTo(
+						thisParamType, expressionBuilder, allowImplicitConversion: false);
+					if (converted.Expression is CastExpression castExpr)
+					{
+						castExpr.AddAnnotation(Transforms.OverloadDisambiguationAnnotation.Instance);
+					}
+					argumentList.Arguments[paramIndex] = converted;
+				}
+			}
 		}
 
 		private void CastArguments(IList<TranslatedExpression> arguments, IList<IParameter> expectedParameters)
