@@ -198,6 +198,7 @@ namespace ICSharpCode.Decompiler.CSharp
 				new FlattenSwitchBlocks(),
 				new FixNameCollisions(),
 				new AddXmlDocumentationTransform(),
+				new StubNamespace(),
 			};
 		}
 

@@ -17,6 +17,7 @@
 // DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -2402,6 +2403,23 @@ namespace ICSharpCode.Decompiler
 				if (checkForOverflowUnderflow != value)
 				{
 					checkForOverflowUnderflow = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		HashSet<string> stubNamespaces = new HashSet<string>();
+
+		/// <summary>
+		/// Namespaces to stub out (comment out all using declarations and members referencing types from these namespaces).
+		/// </summary>
+		[Browsable(false)]
+		public HashSet<string> StubNamespaces {
+			get { return stubNamespaces; }
+			set {
+				if (stubNamespaces != value)
+				{
+					stubNamespaces = value ?? throw new ArgumentNullException();
 					OnPropertyChanged();
 				}
 			}

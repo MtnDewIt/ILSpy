@@ -32,6 +32,11 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 		static ProjectType[] projectTypes = [];
 		static List<string> embeddedResources = [];
 
+		static HashSet<string> excludedNamespaces = 
+		[
+			"Corinth.Farm.ServiceContracts",
+		];
+
 		const int indentSize = 4;
 		static readonly string indent = new(' ', indentSize);
 
@@ -125,6 +130,8 @@ namespace ICSharpCode.ILSpy.Commands.Bonobo
 			decompilationOptions.DecompilerSettings.AlwaysUseGlobal = false;
 			decompilationOptions.DecompilerSettings.FileScopedNamespaces = false;
 			decompilationOptions.DecompilerSettings.EmitConditionalDefines = true;
+
+			decompilationOptions.DecompilerSettings.StubNamespaces = excludedNamespaces;
 
 			if (loadedAssembly != null)
 			{
