@@ -67,18 +67,65 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 
 		public bool IsAttachedTo(XamlType type)
 		{
-			if (type == null || ResolvedMember == null || type.ResolvedType == null)
+			if (type == null || type.ResolvedType == null)
 				return true;
 
-			var declType = ResolvedMember.DeclaringType;
-			var t = type.ResolvedType;
-
-			do
+			// Check if the element type itself is the declaring type.
+			if (ResolvedMember != null)
 			{
-				if (t.FullName == declType.FullName && t.TypeParameterCount == declType.TypeParameterCount)
+				if (type.ResolvedType.FullName == ResolvedMember.DeclaringType.FullName
+					&& type.ResolvedType.TypeParameterCount == ResolvedMember.DeclaringType.TypeParameterCount)
 					return false;
-				t = t.DirectBaseTypes.FirstOrDefault();
-			} while (t != null);
+			}
+			else if (DeclaringType.ResolvedType != null)
+			{
+				if (type.ResolvedType.FullName == DeclaringType.ResolvedType.FullName
+					&& type.ResolvedType.TypeParameterCount == DeclaringType.ResolvedType.TypeParameterCount)
+					return false;
+			}
+
+			// Walk the type hierarchy via DirectBaseTypes. This works for types from
+			// fully loaded assemblies (e.g. known WPF types).
+			if (ResolvedMember != null)
+			{
+				var declType = ResolvedMember.DeclaringType;
+				var t = type.ResolvedType.DirectBaseTypes.FirstOrDefault();
+				if (t == null)
+				{
+					// DirectBaseTypes is empty — the element type is from an assembly
+					// that isn't fully loaded (e.g. a third-party control). We can't
+					// determine the inheritance chain, so assume the property is NOT
+					// attached. This is the safer default: inherited properties
+					// (like FrameworkElement.Width) are far more common than attached
+					// properties (like Grid.Row), and an unnecessary prefix breaks
+					// XAML compilation everywhere it appears.
+					return false;
+				}
+
+				do
+				{
+					if (t.FullName == declType.FullName && t.TypeParameterCount == declType.TypeParameterCount)
+						return false;
+					t = t.DirectBaseTypes.FirstOrDefault();
+				} while (t != null);
+				return true;
+			}
+
+			if (DeclaringType.ResolvedType != null)
+			{
+				var declType = DeclaringType.ResolvedType;
+				var t = type.ResolvedType.DirectBaseTypes.FirstOrDefault();
+				if (t == null)
+					return false;
+
+				do
+				{
+					if (t.FullName == declType.FullName && t.TypeParameterCount == declType.TypeParameterCount)
+						return false;
+					t = t.DirectBaseTypes.FirstOrDefault();
+				} while (t != null);
+			}
+
 			return true;
 		}
 

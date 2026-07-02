@@ -20,6 +20,7 @@
 	THE SOFTWARE.
 */
 
+using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -101,9 +102,14 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 
 				if (prefixNs == null)
 				{
-					elem.Add(new XAttribute(XNamespace.Xmlns + XmlConvert.EncodeLocalName(truePrefix), ns));
+					// Add xmlns to the root element (topmost ancestor) instead of the
+					// current element. This prevents namespace declarations from being
+					// scattered across the document, which can cause compilation issues
+					// when the declaring type already has a proper xmlns mapping.
+					var targetElem = elem.Ancestors().LastOrDefault() ?? elem;
+					targetElem.Add(new XAttribute(XNamespace.Xmlns + XmlConvert.EncodeLocalName(truePrefix), ns));
 					if (string.IsNullOrEmpty(TypeNamespace))
-						elem.AddBeforeSelf(new XComment(string.Format("'{0}' is prefix for the global namespace", truePrefix)));
+						targetElem.AddBeforeSelf(new XComment(string.Format("'{0}' is prefix for the global namespace", truePrefix)));
 				}
 			}
 			Namespace = ctx.GetXmlNamespace(xmlNs);

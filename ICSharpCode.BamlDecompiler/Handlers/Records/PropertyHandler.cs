@@ -39,7 +39,6 @@ namespace ICSharpCode.BamlDecompiler.Handlers
 			var elemType = parent.Xaml.Element.Annotation<XamlType>();
 			var xamlProp = ctx.ResolveProperty(record.AttributeId);
 			var value = XamlUtils.Escape(record.Value);
-			xamlProp.DeclaringType.ResolveNamespace(parent.Xaml, ctx);
 
 			parent.Xaml.Element.Add(ConstructXAttribute());
 
@@ -48,7 +47,10 @@ namespace ICSharpCode.BamlDecompiler.Handlers
 			XAttribute ConstructXAttribute()
 			{
 				if (xamlProp.IsAttachedTo(elemType))
+				{
+					xamlProp.DeclaringType.ResolveNamespace(parent.Xaml, ctx);
 					return new XAttribute(xamlProp.ToXName(ctx, parent.Xaml, true), value);
+				}
 
 				if (xamlProp.PropertyName == "Name" && elemType?.ResolvedType.GetDefinition()?.ParentModule.IsMainModule == true)
 				{
