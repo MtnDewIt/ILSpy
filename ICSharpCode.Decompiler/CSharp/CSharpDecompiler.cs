@@ -188,6 +188,8 @@ namespace ICSharpCode.Decompiler.CSharp
 				new IntroduceUnsafeModifier(),
 				new AddCheckedBlocks(),
 				new DeclareVariables(), // should run after most transforms that modify statements
+				new SimplifyNullablePatternChecks(),
+				new FixAnonymousDelegateReturns(),
 				new TransformFieldAndConstructorInitializers(), // must run after DeclareVariables
 				new PrettifyAssignments(), // must run after DeclareVariables
 				new IntroduceUsingDeclarations(),

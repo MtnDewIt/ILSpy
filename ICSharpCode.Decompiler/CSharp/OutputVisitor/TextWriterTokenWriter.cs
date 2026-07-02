@@ -151,11 +151,12 @@ namespace ICSharpCode.Decompiler.CSharp.OutputVisitor
 					textWriter.Write("/*");
 					textWriter.Write(content);
 					textWriter.Write("*/");
-					Length += 4 + content.Length;
-					column += 2;
-					UpdateEndLocation(content, ref line, ref column);
-					column += 2;
-					isAtStartOfLine = false;
+					textWriter.WriteLine();
+					Length += 4 + content.Length + textWriter.NewLine.Length;
+					column = 1;
+					line++;
+					needsIndent = true;
+					isAtStartOfLine = true;
 					break;
 				case CommentType.Documentation:
 					textWriter.Write("///");

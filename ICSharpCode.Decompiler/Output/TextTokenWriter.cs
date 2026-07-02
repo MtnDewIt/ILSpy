@@ -357,6 +357,7 @@ namespace ICSharpCode.Decompiler
 					output.Write("/*");
 					output.Write(content);
 					output.Write("*/");
+					output.WriteLine();
 					break;
 				case CommentType.Documentation:
 					bool isLastLine = !(nodeStack.Peek().NextSibling is Comment);

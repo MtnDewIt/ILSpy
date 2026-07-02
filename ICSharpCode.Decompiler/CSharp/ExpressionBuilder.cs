@@ -2497,6 +2497,39 @@ namespace ICSharpCode.Decompiler.CSharp
 				ame.Parameters.Clear();
 			}
 
+			Expression? invokeExpressionLambdaBody = null;
+			IType? delegateReturnType = delegateType.GetDelegateInvokeMethod()?.ReturnType;
+			if (body.Statements.Count == 2
+				&& body.Statements[0] is ExpressionStatement { Expression: InvocationExpression invoke }
+				&& body.Statements[1] is ReturnStatement { Expression: NullReferenceExpression } nullReturnStmt
+				&& delegateReturnType != null
+				&& delegateReturnType.Kind != TypeKind.Void)
+			{
+				ResolveResult? invokeResult = invoke.GetResolveResult();
+				bool isVoidInvoke = invokeResult?.Type.Kind == TypeKind.Void;
+				if (!isVoidInvoke && invokeResult is InvocationResolveResult irr)
+				{
+					isVoidInvoke = irr.Member.ReturnType.Kind == TypeKind.Void;
+				}
+				if (isVoidInvoke)
+				{
+					IType objectType = compilation.FindType(KnownTypeCode.Object);
+					var nullRR = new ConstantResolveResult(SpecialType.NullType, null);
+					nullReturnStmt.Expression = new CastExpression(
+						astBuilder.ConvertType(objectType),
+						new NullReferenceExpression().WithRR(nullRR))
+						.WithRR(new ConversionResolveResult(objectType, nullRR, Conversion.NullLiteralConversion));
+				}
+				else if (settings.UseLambdaSyntax
+					&& !ame.Parameters.Any()
+					&& invokeResult != null
+					&& CSharpConversions.Get(compilation).ImplicitConversion(invokeResult, delegateReturnType).IsValid)
+				{
+					isLambda = true;
+					invokeExpressionLambdaBody = invoke;
+				}
+			}
+
 			Expression replacement;
 			IType inferredReturnType;
 			if (isLambda)
@@ -2506,7 +2539,12 @@ namespace ICSharpCode.Decompiler.CSharp
 				lambda.IsAsync = ame.IsAsync;
 				lambda.CopyAnnotationsFrom(ame);
 				ame.Parameters.MoveTo(lambda.Parameters);
-				if (body.Statements.Count == 1 && body.Statements.Single() is ReturnStatement { Expression: not null } returnStmt)
+				if (invokeExpressionLambdaBody != null)
+				{
+					lambda.Body = invokeExpressionLambdaBody.Detach();
+					inferredReturnType = lambda.Body!.GetResolveResult().Type;
+				}
+				else if (body.Statements.Count == 1 && body.Statements.Single() is ReturnStatement { Expression: not null } returnStmt)
 				{
 					lambda.Body = returnStmt.Expression.Detach();
 					inferredReturnType = lambda.Body!.GetResolveResult().Type;

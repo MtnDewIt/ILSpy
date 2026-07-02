@@ -281,40 +281,28 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 		/// to place /* and */ on their own lines at the correct nesting level.
 		/// Blank lines are added only between siblings, never at the end of a block.
 		/// </summary>
-		static void CommentOutNode(AstNode node)
+		internal static void CommentOutNode(AstNode node)
 		{
 			string renderedText = RenderNodeToString(node);
 
 			if (string.IsNullOrWhiteSpace(renderedText))
 				return;
 
-			bool hasPrevSibling = node.PrevSibling != null;
+			string indent = GetCommentIndent(node);
+			string indentedText = IndentMultilineText(renderedText, indent);
 			bool hasNextSibling = node.NextSibling != null;
 
-			// Compute indent based on AST nesting depth
-			int depth = 0;
-			AstNode? current = node.Parent;
-			while (current != null)
-			{
-				if (current is TypeDeclaration || current is NamespaceDeclaration || current is BlockStatement)
-					depth++;
-				current = current.Parent;
-			}
-			string indent = new string('\t', depth);
-
-			// Build content: [\n]<code>\n<indent>[\n]
+			// Rendered as: {WriteIndentation()}/*\n{indented member}\n{indent}*/
 			var sb = new System.Text.StringBuilder();
-			if (hasPrevSibling)
-				sb.Append('\n');
-			sb.Append(renderedText);
 			sb.Append('\n');
-			sb.Append(indent);
+			sb.Append(indentedText);
 			if (hasNextSibling)
 				sb.Append('\n');
+			sb.Append('\n');
+			sb.Append(indent);
 
 			var comment = new Comment(sb.ToString(), CommentType.MultiLine);
 
-			// Attach the comment to a sibling, then remove the node.
 			AstNode? nextSibling = node.NextSibling;
 			if (nextSibling != null)
 			{
@@ -323,10 +311,6 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 			else if (node.PrevSibling != null)
 			{
 				node.PrevSibling.AddTrailingTrivia(comment);
-			}
-			else if (node.Parent != null)
-			{
-				node.Parent.AddTrailingTrivia(comment);
 			}
 
 			node.Remove();
@@ -338,6 +322,25 @@ namespace ICSharpCode.Decompiler.CSharp.Transforms
 		/// own indentation via <c>WriteIndentation()</c>, and the <c>//</c>
 		/// prefix is also added by the visitor.
 		/// </summary>
+		static string GetCommentIndent(AstNode node)
+		{
+			int depth = 0;
+			AstNode? current = node.Parent;
+			while (current != null)
+			{
+				if (current is TypeDeclaration || current is NamespaceDeclaration || current is BlockStatement)
+					depth++;
+				current = current.Parent;
+			}
+			return new string('\t', depth);
+		}
+
+		static string IndentMultilineText(string renderedText, string indent)
+		{
+			var lines = renderedText.Replace("\r\n", "\n").Split('\n');
+			return string.Join("\n", lines.Select(line => indent + line));
+		}
+
 		static List<Trivia> CreateCommentTrivia(string renderedText)
 		{
 			var lines = renderedText.Replace("\r\n", "\n").Split('\n');

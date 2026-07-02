@@ -2898,9 +2898,23 @@ namespace ICSharpCode.Decompiler.CSharp.OutputVisitor
 
 		public virtual void VisitComment(Comment comment)
 		{
+			AstNode? owner = containerStack.Count > 0 ? containerStack.Peek() : null;
+			if (comment.CommentType == CommentType.MultiLine && owner is EntityDeclaration entity)
+			{
+				if (entity.TrailingTrivia.FirstOrDefault() == comment)
+				{
+					NewLine();
+				}
+			}
 			writer.StartNode(comment);
 			writer.WriteComment(comment.CommentType, comment.Content);
 			writer.EndNode(comment);
+			if (comment.CommentType == CommentType.MultiLine && owner is EntityDeclaration entityWithLeadingComment
+				&& entityWithLeadingComment.LeadingTrivia.FirstOrDefault() == comment
+				&& entityWithLeadingComment.PrevSibling != null)
+			{
+				NewLine();
+			}
 		}
 
 		public virtual void VisitPreProcessorDirective(PreProcessorDirective preProcessorDirective)
