@@ -92,14 +92,15 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 				var t = type.ResolvedType.DirectBaseTypes.FirstOrDefault();
 				if (t == null)
 				{
-					// DirectBaseTypes is empty — the element type is from an assembly
-					// that isn't fully loaded (e.g. a third-party control). We can't
-					// determine the inheritance chain, so assume the property is NOT
-					// attached. This is the safer default: inherited properties
-					// (like FrameworkElement.Width) are far more common than attached
-					// properties (like Grid.Row), and an unnecessary prefix breaks
-					// XAML compilation everywhere it appears.
-					return false;
+					// DirectBaseTypes is empty — the element is from an assembly
+					// that isn't fully loaded (e.g. a third-party control like
+					// WPFToolkit's DatePicker). ResolvedMember gives us the key
+					// distinction:
+					// - IProperty → inherited or directly-declared property
+					//   (e.g. FrameworkElement.Width). Return false (not attached).
+					// - IField → DependencyProperty backing field (e.g. Grid.RowProperty).
+					//   Return true (attached).
+					return ResolvedMember is not IProperty;
 				}
 
 				do
@@ -116,7 +117,12 @@ namespace ICSharpCode.BamlDecompiler.Xaml
 				var declType = DeclaringType.ResolvedType;
 				var t = type.ResolvedType.DirectBaseTypes.FirstOrDefault();
 				if (t == null)
-					return false;
+				{
+					var typeDef = type.ResolvedType.GetDefinition();
+					if (typeDef != null && typeDef.GetProperties(p => p.Name == PropertyName).Any())
+						return false;
+					return true;
+				}
 
 				do
 				{
